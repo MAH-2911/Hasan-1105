@@ -2,25 +2,116 @@
 <html>
 <head>
     <title>Cloud Kitchen</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            padding: 20px;
+            background: #f4f4f4;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        input {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 8px 12px;
+            margin: 5px;
+            border: none;
+            background: #007bff;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        .card {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .ingredient-row {
+            position: relative;
+            margin-bottom: 10px;
+        }
+
+        .suggestions {
+            position: absolute;
+            background: white;
+            border: 1px solid #ccc;
+            width: 200px;
+            top: 35px;
+            z-index: 1000;
+        }
+
+        .suggestions div {
+            padding: 5px;
+            cursor: pointer;
+        }
+
+        .suggestions div:hover {
+            background: #eee;
+        }
+    </style>
 </head>
+
 <body>
 
-<h1>Cloud Kitchen</h1>
+<h1>🍽️ Cloud Kitchen Dashboard</h1>
 
-<h2>Add Ingredient</h2>
-<input id="ingredientName">
-<button onclick="addIngredient()">Add</button>
+<div class="card">
+    <h2>Add Ingredient</h2>
+    <input id="ingredientName" placeholder="Ingredient Name">
+    <button onclick="addIngredient()">Add</button>
+</div>
 
-<h2>Add Dish</h2>
-<input id="name" placeholder="Dish Name">
-<button onclick="addDish()">Add Dish</button>
+<div class="card">
+    <h2>Add Dish</h2>
 
-<h2>Menu</h2>
-<ul id="menu"></ul>
+    <input id="name" placeholder="Dish Name">
+    <input id="prep" type="number" placeholder="Preparation Cost">
+    <input id="profit" type="number" placeholder="Profit Margin">
+
+    <h3>Ingredients</h3>
+    <div id="ingredient-list"></div>
+
+    <button onclick="addIngredientField()">+ Add Ingredient</button>
+    <br><br>
+    <button onclick="submitDish()">Add Dish</button>
+</div>
+
+<div class="card">
+    <h2>Menu</h2>
+    <ul id="menu"></ul>
+</div>
 
 <script>
+let ingredientsData = [];
+
+// LOAD INGREDIENTS
+async function loadIngredients() {
+    const res = await fetch("/ingredients");
+    ingredientsData = await res.json();
+}
+
+// ADD INGREDIENT
 async function addIngredient() {
     const name = document.getElementById("ingredientName").value;
+
+    if (!name) return alert("Enter ingredient");
 
     await fetch("/ingredients", {
         method: "POST",
@@ -28,26 +119,102 @@ async function addIngredient() {
         body: JSON.stringify({name})
     });
 
-    alert("Ingredient added");
+    document.getElementById("ingredientName").value = "";
+    loadIngredients();
 }
 
-async function addDish() {
+// ADD INGREDIENT FIELD
+function addIngredientField() {
+    let div = document.createElement("div");
+    div.className = "ingredient-row";
+
+    div.innerHTML = `
+        <input class="ing-search" placeholder="Type ingredient">
+        <div class="suggestions"></div>
+        <input type="hidden" class="ing-id">
+
+        <input class="qty" type="number" placeholder="Qty">
+        <input class="price" type="number" placeholder="Price">
+
+        <button onclick="this.parentElement.remove()">X</button>
+    `;
+
+    document.getElementById("ingredient-list").appendChild(div);
+}
+
+// AUTOCOMPLETE
+document.addEventListener("input", function(e) {
+    if (!e.target.classList.contains("ing-search")) return;
+
+    let input = e.target;
+    let value = input.value.toLowerCase();
+    let box = input.parentElement.querySelector(".suggestions");
+
+    box.innerHTML = "";
+
+    if (!value) return;
+
+    let matches = ingredientsData.filter(i =>
+        i.name.toLowerCase().includes(value)
+    );
+
+    matches.forEach(m => {
+        let option = document.createElement("div");
+        option.innerText = m.name;
+
+        option.onclick = () => {
+            input.value = m.name;
+            input.parentElement.querySelector(".ing-id").value = m.id;
+            box.innerHTML = "";
+        };
+
+        box.appendChild(option);
+    });
+});
+
+// ADD DISH
+async function submitDish() {
+
+    let ingredients = [];
+
+    document.querySelectorAll(".ingredient-row").forEach(div => {
+        let id = div.querySelector(".ing-id").value;
+
+        if (id) {
+            ingredients.push({
+                id: id,
+                qty: div.querySelector(".qty").value || 1,
+                price: div.querySelector(".price").value || 0
+            });
+        }
+    });
+
     const name = document.getElementById("name").value;
+
+    if (!name) return alert("Enter dish name");
 
     await fetch("/dishes", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({
             name: name,
-            prep: 0,
-            profit: 75,
-            ingredients: []
+            prep: document.getElementById("prep").value || 0,
+            profit: document.getElementById("profit").value || 75,
+            ingredients: ingredients
         })
     });
+
+    alert("Dish Added");
+
+    document.getElementById("name").value = "";
+    document.getElementById("prep").value = "";
+    document.getElementById("profit").value = "";
+    document.getElementById("ingredient-list").innerHTML = "";
 
     loadMenu();
 }
 
+// LOAD MENU
 async function loadMenu() {
     const res = await fetch("/dishes");
     const data = await res.json();
@@ -55,13 +222,30 @@ async function loadMenu() {
     let html = "";
 
     data.forEach(d => {
-        html += `<li>${d.name}</li>`;
+        html += `
+            <li>
+                <b>${d.name}</b> - ₹${d.selling_price}
+                <button onclick="deleteDish(${d.id})">Delete</button>
+            </li>
+        `;
     });
 
     document.getElementById("menu").innerHTML = html;
 }
 
-loadMenu();
+// DELETE
+async function deleteDish(id) {
+    await fetch("/dishes/" + id, {method: "DELETE"});
+    loadMenu();
+}
+
+// INIT
+async function init() {
+    await loadIngredients();
+    loadMenu();
+}
+
+init();
 </script>
 
 </body>
