@@ -1,39 +1,52 @@
+-- Dishes Table
 CREATE TABLE IF NOT EXISTS dishes (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
-    ingredient_cost REAL NOT NULL DEFAULT 0,
     preparation_expense REAL NOT NULL DEFAULT 0,
     profit_margin REAL NOT NULL DEFAULT 75,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Ingredients Master Table
 CREATE TABLE IF NOT EXISTS ingredients (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    dish_id INTEGER NOT NULL,
-    name TEXT NOT NULL,
-    cost REAL NOT NULL DEFAULT 0,
-    FOREIGN KEY (dish_id) REFERENCES dishes(id) ON DELETE CASCADE
+    name TEXT NOT NULL UNIQUE
 );
 
--- View for dashboard (SAFE calculations using COALESCE)
-CREATE VIEW IF NOT EXISTS dish_summary AS
+-- Dish Ingredients Mapping
+CREATE TABLE IF NOT EXISTS dish_ingredients (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    dish_id INTEGER,
+    ingredient_id INTEGER,
+    quantity REAL DEFAULT 1,
+    price REAL DEFAULT 0,
+
+    FOREIGN KEY (dish_id) REFERENCES dishes(id) ON DELETE CASCADE,
+    FOREIGN KEY (ingredient_id) REFERENCES ingredients(id) ON DELETE CASCADE
+);
+
+-- View for dashboard
+DROP VIEW IF EXISTS dish_summary;
+
+CREATE VIEW dish_summary AS
 SELECT
-    id,
-    name,
-    ingredient_cost,
-    preparation_expense,
+    d.id,
+    d.name,
 
-    -- Safe COGS calculation
-    (COALESCE(ingredient_cost, 0) + COALESCE(preparation_expense, 0)) AS cogs,
+    COALESCE(SUM(di.quantity * di.price), 0) AS ingredient_cost,
+    d.preparation_expense,
 
-    profit_margin,
+    (COALESCE(SUM(di.quantity * di.price), 0) + d.preparation_expense) AS cogs,
 
-    -- Safe Selling Price calculation
+    d.profit_margin,
+
     (
-        COALESCE(ingredient_cost, 0) +
-        COALESCE(preparation_expense, 0) +
-        COALESCE(profit_margin, 0)
+        COALESCE(SUM(di.quantity * di.price), 0) +
+        d.preparation_expense +
+        d.profit_margin
     ) AS selling_price
 
-FROM dishes;
+FROM dishes d
+LEFT JOIN dish_ingredients di ON d.id = di.dish_id
+GROUP BY d.id;

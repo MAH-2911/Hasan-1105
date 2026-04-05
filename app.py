@@ -1,73 +1,73 @@
-from flask import Flask, jsonify, request, render_template
-from flask_cors import CORS
+from flask import Flask, request, jsonify, render_template
 from database import get_db, init_db
-
-app = Flask(__name__)
-CORS(app)
 import os
 
+app = Flask(__name__)
+
+# Initialize DB only once
 if not os.path.exists("kitchen.db"):
     init_db()
 
+# ================= HOME =================
 @app.route("/")
 def index():
     return render_template("index.html")
 
-@app.route("/api/dishes", methods=["GET"])
+# ================= GET DISHES =================
+@app.route("/dishes", methods=["GET"])
 def get_dishes():
-    with get_db() as db:
-        rows = db.execute("SELECT * FROM dish_summary ORDER BY id DESC").fetchall()
-        return jsonify([dict(r) for r in rows])
+    conn = get_db()
+    data = conn.execute("SELECT * FROM dish_summary").fetchall()
+    return jsonify([dict(row) for row in data])
 
-@app.route("/api/dishes", methods=["POST"])
+# ================= ADD DISH =================
+@app.route("/dishes", methods=["POST"])
 def add_dish():
-    d = request.json
-    margin = d.get("profit_margin", 75)
-    with get_db() as db:
-        cur = db.execute(
-            "INSERT INTO dishes (name, ingredient_cost, preparation_expense, profit_margin) VALUES (?,?,?,?)",
-            (d["name"], d["ingredient_cost"], d["preparation_expense"], margin)
-        )
-        dish_id = cur.lastrowid
-        for ing in d.get("ingredients", []):
-            db.execute("INSERT INTO ingredients (dish_id, name, cost) VALUES (?,?,?)",
-                       (dish_id, ing["name"], ing["cost"]))
-        db.commit()
-        row = db.execute("SELECT * FROM dish_summary WHERE id=?", (dish_id,)).fetchone()
-        return jsonify(dict(row)), 201
+    data = request.json
 
-@app.route("/api/dishes/<int:id>", methods=["PUT"])
-def update_dish(id):
-    d = request.json
-    margin = d.get("profit_margin", 75)
-    with get_db() as db:
-        db.execute(
-            "UPDATE dishes SET name=?, ingredient_cost=?, preparation_expense=?, profit_margin=?, updated_at=CURRENT_TIMESTAMP WHERE id=?",
-            (d["name"], d["ingredient_cost"], d["preparation_expense"], margin, id)
-        )
-        db.execute("DELETE FROM ingredients WHERE dish_id=?", (id,))
-        for ing in d.get("ingredients", []):
-            db.execute("INSERT INTO ingredients (dish_id, name, cost) VALUES (?,?,?)",
-                       (id, ing["name"], ing["cost"]))
-        db.commit()
-        row = db.execute("SELECT * FROM dish_summary WHERE id=?", (id,)).fetchone()
-        return jsonify(dict(row))
+    conn = get_db()
+    cursor = conn.cursor()
 
-@app.route("/api/dishes/<int:id>", methods=["DELETE"])
+    cursor.execute("""
+        INSERT INTO dishes (name, preparation_expense, profit_margin)
+        VALUES (?, ?, ?)
+    """, (data["name"], data["prep"], data["profit"]))
+
+    dish_id = cursor.lastrowid
+
+    for item in data["ingredients"]:
+        cursor.execute("""
+            INSERT INTO dish_ingredients (dish_id, ingredient_id, quantity, price)
+            VALUES (?, ?, ?, ?)
+        """, (dish_id, item["id"], item["qty"], item["price"]))
+
+    conn.commit()
+    return jsonify({"message": "Dish added"})
+
+# ================= DELETE DISH =================
+@app.route("/dishes/<int:id>", methods=["DELETE"])
 def delete_dish(id):
-    with get_db() as db:
-        db.execute("DELETE FROM dishes WHERE id=?", (id,))
-        db.commit()
-        return jsonify({"deleted": id})
+    conn = get_db()
+    conn.execute("DELETE FROM dishes WHERE id=?", (id,))
+    conn.commit()
+    return jsonify({"message": "Deleted"})
 
-@app.route("/api/dishes/<int:id>/ingredients", methods=["GET"])
-def get_ingredients(id):
-    with get_db() as db:
-        rows = db.execute("SELECT * FROM ingredients WHERE dish_id=?", (id,)).fetchall()
-        return jsonify([dict(r) for r in rows])
+# ================= INGREDIENTS =================
+@app.route("/ingredients", methods=["GET"])
+def get_ingredients():
+    conn = get_db()
+    data = conn.execute("SELECT * FROM ingredients").fetchall()
+    return jsonify([dict(row) for row in data])
 
-import os
+@app.route("/ingredients", methods=["POST"])
+def add_ingredient():
+    data = request.json
+    conn = get_db()
+    conn.execute("INSERT INTO ingredients (name) VALUES (?)", (data["name"],))
+    conn.commit()
+    return jsonify({"message": "Ingredient added"})
 
+# ================= RUN =================
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)

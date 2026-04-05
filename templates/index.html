@@ -1,692 +1,188 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Cloud Kitchen — Menu Manager</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Crimson+Pro:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet"/>
-<style>
-:root {
-  --cream: #f7f2e8;
-  --cream2: #ede6d6;
-  --paper: #faf7f0;
-  --espresso: #1c1410;
-  --brown: #3d2b1f;
-  --olive: #5a6b3a;
-  --rust: #b85c2a;
-  --gold: #c49a3c;
-  --muted: #8a7968;
-  --border: #d4c9b0;
-  --border2: #c4b89a;
-  --shadow: rgba(28,20,16,0.12);
-}
-
-* { margin:0; padding:0; box-sizing:border-box; }
-
-body {
-  background: var(--cream);
-  color: var(--espresso);
-  font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 16px;
-  min-height: 100vh;
-  background-image:
-    radial-gradient(ellipse at 20% 0%, rgba(196,154,60,0.08) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 100%, rgba(90,107,58,0.06) 0%, transparent 50%);
-}
-
-/* grain overlay */
-body::before {
-  content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
-  opacity:0.025;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-}
-
-/* ── HEADER ── */
-header {
-  position: relative; z-index:1;
-  padding: 0 56px;
-  border-bottom: 1px solid var(--border2);
-  background: var(--paper);
-  box-shadow: 0 1px 0 var(--border), 0 4px 24px var(--shadow);
-  display: flex; align-items: center; justify-content: space-between;
-}
-
-.header-left { padding: 28px 0; }
-
-.brand-rule {
-  display: flex; align-items: center; gap: 14px; margin-bottom: 4px;
-}
-.brand-rule::before, .brand-rule::after {
-  content:''; flex:1; height:1px; background: var(--border2);
-  max-width: 40px;
-}
-.brand-icon { color: var(--gold); font-size: 1rem; letter-spacing: 4px; }
-
-.brand-name {
-  font-family: 'Playfair Display', serif;
-  font-size: 2.1rem; font-weight: 900; letter-spacing: -0.5px;
-  color: var(--espresso); line-height: 1;
-}
-.brand-name em { color: var(--rust); font-style: italic; }
-
-.brand-sub {
-  font-size: 0.7rem; letter-spacing: 4px; text-transform: uppercase;
-  color: var(--muted); margin-top: 5px; text-align: center;
-}
-
-.add-btn {
-  background: var(--espresso); color: var(--cream);
-  border: none; padding: 13px 28px;
-  font-family: 'Playfair Display', serif; font-size: 0.95rem; font-style: italic;
-  border-radius: 2px; cursor: pointer;
-  transition: all 0.25s; letter-spacing: 0.3px;
-  box-shadow: 3px 3px 0 var(--brown);
-  position: relative;
-}
-.add-btn:hover {
-  background: var(--rust);
-  transform: translate(-1px,-1px);
-  box-shadow: 4px 4px 0 var(--brown);
-}
-
-/* ── STATS ── */
-.stats-row {
-  position: relative; z-index:1;
-  display: grid; grid-template-columns: repeat(4, 1fr);
-  border-bottom: 1px solid var(--border);
-  background: var(--paper);
-}
-.stat-card {
-  padding: 22px 32px; border-right: 1px solid var(--border);
-  position: relative; overflow: hidden;
-  animation: fadeSlideUp 0.5s ease both;
-}
-.stat-card:nth-child(1){animation-delay:0.05s}
-.stat-card:nth-child(2){animation-delay:0.1s}
-.stat-card:nth-child(3){animation-delay:0.15s}
-.stat-card:nth-child(4){animation-delay:0.2s; border-right:none}
-
-@keyframes fadeSlideUp {
-  from { opacity:0; transform:translateY(12px); }
-  to   { opacity:1; transform:translateY(0); }
-}
-
-.stat-card::after {
-  content:''; position:absolute; bottom:0; left:32px; right:32px;
-  height:2px; background: linear-gradient(90deg, var(--gold), transparent);
-  opacity:0; transition:opacity 0.3s;
-}
-.stat-card:hover::after { opacity:1; }
-
-.stat-label {
-  font-size: 0.62rem; letter-spacing: 3px; text-transform: uppercase;
-  color: var(--muted); margin-bottom: 8px;
-}
-.stat-value {
-  font-family: 'Playfair Display', serif;
-  font-size: 2rem; font-weight: 700; line-height: 1;
-  color: var(--espresso);
-}
-.stat-value.gold { color: var(--gold); }
-.stat-value.olive { color: var(--olive); }
-.stat-value.rust { color: var(--rust); }
-.stat-note { font-size: 0.72rem; color: var(--muted); margin-top: 4px; font-style: italic; }
-
-/* ── MAIN ── */
-main { position:relative; z-index:1; padding: 44px 56px; }
-
-.section-header {
-  display: flex; align-items: baseline; gap: 16px; margin-bottom: 28px;
-}
-.section-title {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.5rem; font-weight: 700; font-style: italic;
-  color: var(--espresso);
-}
-.section-rule { flex:1; height:1px; background: var(--border); }
-.section-count {
-  font-size: 0.7rem; letter-spacing: 2px; text-transform: uppercase;
-  color: var(--muted);
-}
-
-/* ── CARDS GRID ── */
-.dishes-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 20px;
-}
-
-.dish-card {
-  background: var(--paper);
-  border: 1px solid var(--border);
-  border-radius: 3px;
-  overflow: hidden;
-  box-shadow: 2px 3px 12px var(--shadow);
-  transition: all 0.25s;
-  animation: fadeSlideUp 0.4s ease both;
-}
-.dish-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 4px 8px 28px rgba(28,20,16,0.18);
-  border-color: var(--border2);
-}
-
-.card-top {
-  padding: 20px 22px 16px;
-  border-bottom: 1px solid var(--border);
-  position: relative;
-}
-.card-number {
-  font-size: 0.6rem; letter-spacing: 3px; color: var(--muted);
-  text-transform: uppercase; margin-bottom: 4px;
-}
-.card-name {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.25rem; font-weight: 700; color: var(--espresso);
-  line-height: 1.2;
-}
-.card-actions {
-  position: absolute; top: 16px; right: 16px;
-  display: flex; gap: 6px; opacity: 0; transition: opacity 0.2s;
-}
-.dish-card:hover .card-actions { opacity: 1; }
-.card-btn {
-  width: 30px; height: 30px; border-radius: 2px;
-  border: 1px solid var(--border); background: var(--cream);
-  cursor: pointer; display: flex; align-items: center; justify-content: center;
-  font-size: 0.85rem; color: var(--muted); transition: all 0.15s;
-}
-.card-btn:hover.edit { background:var(--espresso); color:var(--cream); border-color:var(--espresso); }
-.card-btn:hover.del { background:var(--rust); color:#fff; border-color:var(--rust); }
-
-.card-costs {
-  padding: 16px 22px;
-  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
-  border-bottom: 1px solid var(--border);
-}
-.cost-item { display: flex; flex-direction: column; gap: 3px; }
-.cost-label { font-size: 0.6rem; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); }
-.cost-value { font-size: 1rem; font-weight: 500; color: var(--brown); }
-
-.card-bottom {
-  padding: 14px 22px;
-  display: flex; align-items: center; justify-content: space-between;
-  background: linear-gradient(135deg, var(--espresso) 0%, #2e1f14 100%);
-}
-.cb-left { display: flex; flex-direction: column; gap: 2px; }
-.cb-label { font-size: 0.58rem; letter-spacing: 2px; text-transform: uppercase; color: rgba(250,247,240,0.45); }
-.cb-cogs { font-size: 0.85rem; color: rgba(250,247,240,0.65); }
-.selling-price {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.6rem; font-weight: 900; color: var(--gold);
-  letter-spacing: -0.5px;
-}
-.profit-badge {
-  display: flex; flex-direction: column; align-items: flex-end; gap: 2px;
-}
-.profit-label { font-size: 0.58rem; letter-spacing: 2px; text-transform: uppercase; color: rgba(250,247,240,0.45); }
-.profit-val { font-size: 0.95rem; font-weight: 500; color: #7ec99a; }
-
-/* ── EMPTY ── */
-.empty-state {
-  text-align: center; padding: 100px 20px; color: var(--muted);
-}
-.empty-ornament {
-  font-family: 'Playfair Display', serif;
-  font-size: 4rem; opacity: 0.15; color: var(--espresso);
-  margin-bottom: 20px; font-style: italic;
-}
-.empty-title {
-  font-family: 'Playfair Display', serif; font-size: 1.3rem;
-  font-style: italic; color: var(--brown); margin-bottom: 8px;
-}
-.empty-sub { font-size: 0.85rem; color: var(--muted); }
-
-/* ── MODAL ── */
-.overlay {
-  position: fixed; inset: 0;
-  background: rgba(28,20,16,0.65);
-  backdrop-filter: blur(3px);
-  z-index: 200; display: none;
-  align-items: center; justify-content: center;
-  padding: 20px;
-}
-.overlay.open { display: flex; }
-
-.modal {
-  background: var(--paper);
-  border: 1px solid var(--border2);
-  border-radius: 3px;
-  width: 100%; max-width: 560px;
-  max-height: 92vh; overflow-y: auto;
-  box-shadow: 8px 12px 48px rgba(28,20,16,0.4);
-  animation: modalIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-@keyframes modalIn {
-  from { opacity:0; transform: scale(0.94) translateY(20px); }
-  to   { opacity:1; transform: scale(1) translateY(0); }
-}
-
-.modal-header {
-  padding: 28px 32px 22px;
-  border-bottom: 1px solid var(--border);
-  text-align: center; position: relative;
-}
-.modal-ornament {
-  font-size: 0.65rem; letter-spacing: 5px; text-transform: uppercase;
-  color: var(--gold); margin-bottom: 8px;
-}
-.modal-title {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.5rem; font-weight: 700; font-style: italic;
-}
-.close-btn {
-  position: absolute; top: 24px; right: 24px;
-  background: none; border: 1px solid var(--border);
-  color: var(--muted); width: 32px; height: 32px;
-  border-radius: 2px; cursor: pointer; font-size: 1rem;
-  display: flex; align-items: center; justify-content: center;
-  transition: all 0.15s;
-}
-.close-btn:hover { background: var(--espresso); color: var(--cream); border-color: var(--espresso); }
-
-.modal-body { padding: 28px 32px; display: flex; flex-direction: column; gap: 22px; }
-
-.field { display: flex; flex-direction: column; gap: 7px; }
-.field label {
-  font-size: 0.62rem; letter-spacing: 3px; text-transform: uppercase;
-  color: var(--muted);
-}
-.field input {
-  background: var(--cream); border: 1px solid var(--border);
-  color: var(--espresso); padding: 11px 15px;
-  font-family: 'Crimson Pro', serif; font-size: 1rem;
-  border-radius: 2px; outline: none; transition: border-color 0.2s;
-}
-.field input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(196,154,60,0.1); }
-.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-
-/* ingredients */
-.ing-section-label {
-  font-size: 0.62rem; letter-spacing: 3px; text-transform: uppercase;
-  color: var(--muted); margin-bottom: 10px;
-}
-.ing-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
-.ing-row { display: grid; grid-template-columns: 1fr 130px 34px; gap: 8px; align-items: center; }
-.ing-row input {
-  background: var(--cream); border: 1px solid var(--border);
-  color: var(--espresso); padding: 9px 12px;
-  font-family: 'Crimson Pro', serif; font-size: 0.95rem;
-  border-radius: 2px; outline: none; transition: border-color 0.2s;
-}
-.ing-row input:focus { border-color: var(--gold); }
-.rm-ing { background: none; border: 1px solid var(--border); color: var(--rust); width:34px; height:36px; border-radius:2px; cursor:pointer; font-size:1.1rem; transition:all 0.15s; }
-.rm-ing:hover { background:var(--rust); color:#fff; border-color:var(--rust); }
-.add-ing-btn {
-  background: none; border: 1px dashed var(--border2);
-  color: var(--muted); padding: 9px; border-radius: 2px;
-  cursor: pointer; font-family: 'Crimson Pro', serif;
-  font-size: 0.85rem; font-style: italic; width: 100%;
-  transition: all 0.2s; letter-spacing: 0.3px;
-}
-.add-ing-btn:hover { border-color: var(--olive); color: var(--olive); background: rgba(90,107,58,0.04); }
-
-/* preview */
-.cogs-preview {
-  background: var(--espresso);
-  border-radius: 3px; padding: 18px 22px;
-  display: grid; grid-template-columns: 1fr 1px 1fr 1px 1fr;
-  gap: 0; align-items: center;
-}
-.divider-v { width:1px; background: rgba(250,247,240,0.12); height:40px; justify-self:center; }
-.cp-item { text-align: center; padding: 0 12px; }
-.cp-label { font-size: 0.58rem; letter-spacing: 3px; text-transform: uppercase; color: rgba(250,247,240,0.4); margin-bottom: 6px; }
-.cp-val { font-family: 'Playfair Display', serif; font-size: 1.2rem; font-weight: 700; color: rgba(250,247,240,0.8); }
-.cp-val.gold { color: var(--gold); font-size: 1.4rem; }
-.cp-val.green { color: #7ec99a; }
-
-.modal-footer {
-  padding: 20px 32px 28px;
-  display: flex; gap: 12px; justify-content: flex-end;
-  border-top: 1px solid var(--border);
-}
-.btn-cancel {
-  background: none; border: 1px solid var(--border); color: var(--muted);
-  padding: 11px 22px; border-radius: 2px; cursor: pointer;
-  font-family: 'Crimson Pro', serif; font-size: 0.95rem;
-  transition: all 0.15s;
-}
-.btn-cancel:hover { border-color: var(--brown); color: var(--brown); }
-.btn-save {
-  background: var(--espresso); color: var(--cream);
-  border: none; padding: 11px 28px; border-radius: 2px;
-  cursor: pointer; font-family: 'Playfair Display', serif;
-  font-size: 0.95rem; font-style: italic;
-  box-shadow: 2px 2px 0 var(--brown);
-  transition: all 0.2s;
-}
-.btn-save:hover { background: var(--rust); transform:translate(-1px,-1px); box-shadow:3px 3px 0 var(--brown); }
-
-/* toast */
-.toast {
-  position: fixed; bottom: 28px; right: 28px;
-  background: var(--espresso); color: var(--cream);
-  border-left: 3px solid var(--olive);
-  padding: 13px 22px; border-radius: 2px;
-  font-size: 0.85rem; font-style: italic;
-  transform: translateY(60px); opacity: 0;
-  transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
-  z-index: 300; box-shadow: 3px 3px 0 var(--brown);
-}
-.toast.show { transform: translateY(0); opacity: 1; }
-.toast.err { border-left-color: var(--rust); }
-
-/* scrollbar */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--cream); }
-::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
-</style>
+    <title>Cloud Kitchen</title>
+    <style>
+        body {
+            font-family: Arial;
+            padding: 20px;
+        }
+        input, select {
+            margin: 5px;
+            padding: 5px;
+        }
+        .ingredient-row {
+            margin-bottom: 5px;
+        }
+        button {
+            padding: 5px 10px;
+            margin-top: 5px;
+        }
+    </style>
 </head>
 <body>
 
-<header>
-  <div class="header-left">
-    <div class="brand-rule"><span class="brand-icon">✦ ✦ ✦</span></div>
-    <div class="brand-name">Cloud<em>Kitchen</em></div>
-    <div class="brand-sub">Menu &amp; Cost Manager</div>
-  </div>
-  <button class="add-btn" onclick="openModal()">＋ Add New Dish</button>
-</header>
+<h1>Cloud Kitchen Dashboard</h1>
 
-<div class="stats-row">
-  <div class="stat-card">
-    <div class="stat-label">Dishes on Menu</div>
-    <div class="stat-value rust" id="s-total">0</div>
-    <div class="stat-note">active items</div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-label">Average COGS</div>
-    <div class="stat-value" id="s-cogs">₹0</div>
-    <div class="stat-note">per dish</div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-label">Avg Selling Price</div>
-    <div class="stat-value gold" id="s-price">₹0</div>
-    <div class="stat-note">per dish</div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-label">Avg Profit</div>
-    <div class="stat-value olive" id="s-profit">₹0</div>
-    <div class="stat-note">per dish</div>
-  </div>
-</div>
+<!-- ================= INGREDIENT SECTION ================= -->
+<h2>Add Ingredient</h2>
+<input id="ingredientName" placeholder="Ingredient Name">
+<button onclick="addIngredient()">Add Ingredient</button>
 
-<main>
-  <div class="section-header">
-    <span class="section-title">The Menu</span>
-    <span class="section-rule"></span>
-    <span class="section-count" id="dish-count">0 dishes</span>
-  </div>
-  <div class="dishes-grid" id="dishes-grid"></div>
-  <div class="empty-state" id="empty" style="display:none">
-    <div class="empty-ornament">✦</div>
-    <div class="empty-title">Your menu is empty</div>
-    <div class="empty-sub">Add your first dish to start tracking costs &amp; profits.</div>
-  </div>
-</main>
+<hr>
 
-<!-- MODAL -->
-<div class="overlay" id="overlay" onclick="overlayClick(event)">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-ornament">✦ Cloud Kitchen ✦</div>
-      <div class="modal-title" id="modal-title">Add New Dish</div>
-      <button class="close-btn" onclick="closeModal()">✕</button>
-    </div>
-    <div class="modal-body">
-      <input type="hidden" id="dish-id"/>
-      <div class="field">
-        <label>Dish Name</label>
-        <input type="text" id="f-name" placeholder="e.g. Butter Chicken"/>
-      </div>
-      <div>
-        <div class="ing-section-label">Ingredients &amp; Costs</div>
-        <div class="ing-list" id="ing-list"></div>
-        <button class="add-ing-btn" onclick="addIngRow()">+ Add ingredient</button>
-      </div>
-      <div class="row2">
-        <div class="field">
-          <label>Preparation Expense (₹)</label>
-          <input type="number" id="f-prep" placeholder="0" min="0" oninput="onCostChange()"/>
-        </div>
-        <div class="field">
-          <label>Profit Margin (₹) <span id="margin-hint" style="color:var(--muted);font-size:0.7rem;font-style:italic;letter-spacing:0"></span></label>
-          <input type="number" id="f-margin" value="75" min="0" oninput="onMarginChange()"/>
-        </div>
-      </div>
-      <div class="row2">
-        <div class="field">
-          <label>Selling Price (₹) <span style="font-size:0.68rem;color:var(--olive);font-style:italic;letter-spacing:0">— auto or override</span></label>
-          <input type="number" id="f-sell" placeholder="0" min="0" oninput="onSellChange()" style="border-color:var(--gold);background:rgba(196,154,60,0.06);font-weight:500"/>
-        </div>
-        <div class="field">
-          <label>COGS (calculated)</label>
-          <input type="number" id="f-cogs" readonly style="color:var(--muted);cursor:not-allowed;background:var(--cream2)" tabindex="-1"/>
-        </div>
-      </div>
-      <div class="cogs-preview">
-        <div class="cp-item">
-          <div class="cp-label">COGS</div>
-          <div class="cp-val" id="p-cogs">₹0</div>
-        </div>
-        <div class="divider-v"></div>
-        <div class="cp-item">
-          <div class="cp-label">Selling Price</div>
-          <div class="cp-val gold" id="p-sell">₹0</div>
-        </div>
-        <div class="divider-v"></div>
-        <div class="cp-item">
-          <div class="cp-label">Profit</div>
-          <div class="cp-val green" id="p-profit">₹0</div>
-        </div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
-      <button class="btn-save" onclick="saveDish()">Save Dish</button>
-    </div>
-  </div>
-</div>
+<!-- ================= DISH SECTION ================= -->
+<h2>Add Dish</h2>
 
-<div class="toast" id="toast"></div>
+<input id="name" placeholder="Dish Name">
+<input id="prep" type="number" placeholder="Preparation Cost">
+<input id="profit" type="number" placeholder="Profit Margin">
+
+<h3>Ingredients for this Dish</h3>
+<div id="ingredient-list"></div>
+
+<button onclick="addIngredientField()">+ Add Ingredient</button>
+<br><br>
+<button onclick="submitDish()">Add Dish</button>
+
+<hr>
+
+<!-- ================= MENU ================= -->
+<h2>Menu</h2>
+<ul id="menu"></ul>
 
 <script>
-const API = "/api";
-let dishes = [];
+let ingredientsData = [];
 
-async function load() {
-  try {
-    const r = await fetch(`${API}/dishes`);
-    dishes = await r.json();
-    render();
-  } catch { showToast("Cannot connect to server", true); }
+
+// ================= LOAD INGREDIENTS =================
+async function loadIngredients() {
+    const res = await fetch("/ingredients");
+    ingredientsData = await res.json();
 }
 
-function render() {
-  const grid = document.getElementById("dishes-grid");
-  const empty = document.getElementById("empty");
-  const count = document.getElementById("dish-count");
-  count.textContent = `${dishes.length} dish${dishes.length!==1?'es':''}`;
-  if (!dishes.length) { grid.innerHTML=""; empty.style.display="block"; updateStats([]); return; }
-  empty.style.display="none";
-  grid.innerHTML = dishes.map((d,i) => `
-    <div class="dish-card" style="animation-delay:${i*0.05}s">
-      <div class="card-top">
-        <div class="card-number">No. ${String(i+1).padStart(2,'0')}</div>
-        <div class="card-name">${d.name}</div>
-        <div class="card-actions">
-          <button class="card-btn edit" onclick="editDish(${d.id})" title="Edit">✎</button>
-          <button class="card-btn del" onclick="deleteDish(${d.id})" title="Delete">✕</button>
-        </div>
-      </div>
-      <div class="card-costs">
-        <div class="cost-item">
-          <span class="cost-label">Ingredients</span>
-          <span class="cost-value">₹${d.ingredient_cost.toFixed(2)}</span>
-        </div>
-        <div class="cost-item">
-          <span class="cost-label">Prep Expense</span>
-          <span class="cost-value">₹${d.preparation_expense.toFixed(2)}</span>
-        </div>
-      </div>
-      <div class="card-bottom">
-        <div class="cb-left">
-          <span class="cb-label">Selling Price</span>
-          <span class="cb-cogs">COGS ₹${d.cogs.toFixed(0)} + ₹${d.profit_margin.toFixed(0)}</span>
-        </div>
-        <div class="selling-price">₹${d.selling_price.toFixed(2)}</div>
-        <div class="profit-badge">
-          <span class="profit-label">Profit</span>
-          <span class="profit-val">+₹${d.profit_margin.toFixed(0)}</span>
-        </div>
-      </div>
-    </div>`).join("");
-  updateStats(dishes);
+
+// ================= ADD INGREDIENT FIELD =================
+function addIngredientField() {
+    let div = document.createElement("div");
+    div.className = "ingredient-row";
+
+    div.innerHTML = `
+        <select class="ing-id">
+            ${ingredientsData.map(i => `<option value="${i.id}">${i.name}</option>`).join("")}
+        </select>
+        <input type="number" class="qty" placeholder="Qty">
+        <input type="number" class="price" placeholder="Price">
+        <button onclick="this.parentElement.remove()">❌</button>
+    `;
+
+    document.getElementById("ingredient-list").appendChild(div);
 }
 
-function updateStats(data) {
-  const n = data.length;
-  document.getElementById("s-total").textContent = n;
-  document.getElementById("s-cogs").textContent = n ? "₹"+(data.reduce((a,d)=>a+d.cogs,0)/n).toFixed(0) : "₹0";
-  document.getElementById("s-price").textContent = n ? "₹"+(data.reduce((a,d)=>a+d.selling_price,0)/n).toFixed(0) : "₹0";
-  document.getElementById("s-profit").textContent = n ? "₹"+(data.reduce((a,d)=>a+d.profit_margin,0)/n).toFixed(0) : "₹0";
+
+// ================= ADD INGREDIENT =================
+async function addIngredient() {
+    const name = document.getElementById("ingredientName").value;
+
+    if (!name) {
+        alert("Enter ingredient name");
+        return;
+    }
+
+    await fetch("/ingredients", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({name})
+    });
+
+    document.getElementById("ingredientName").value = "";
+
+    await loadIngredients();
+    alert("Ingredient Added!");
 }
 
-function openModal(dish=null) {
-  document.getElementById("overlay").classList.add("open");
-  document.getElementById("modal-title").textContent = dish ? "Edit Dish" : "Add New Dish";
-  document.getElementById("dish-id").value = dish ? dish.id : "";
-  document.getElementById("f-name").value = dish ? dish.name : "";
-  document.getElementById("f-prep").value = dish ? dish.preparation_expense : "";
-  document.getElementById("f-margin").value = dish ? dish.profit_margin : 75;
-  document.getElementById("f-sell").value = dish ? dish.selling_price : "";
-  document.getElementById("ing-list").innerHTML = "";
-  if (dish && dish.ingredients) dish.ingredients.forEach(i => addIngRow(i.name, i.cost));
-  else addIngRow();
-  recalc();
+
+// ================= SUBMIT DISH =================
+async function submitDish() {
+    let ingredients = [];
+
+    document.querySelectorAll("#ingredient-list .ingredient-row").forEach(div => {
+        ingredients.push({
+            id: div.querySelector(".ing-id").value,
+            qty: div.querySelector(".qty").value || 1,
+            price: div.querySelector(".price").value || 0
+        });
+    });
+
+    const name = document.getElementById("name").value;
+    const prep = document.getElementById("prep").value;
+    const profit = document.getElementById("profit").value;
+
+    if (!name) {
+        alert("Enter dish name");
+        return;
+    }
+
+    await fetch("/dishes", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            name: name,
+            prep: prep || 0,
+            profit: profit || 75,
+            ingredients: ingredients
+        })
+    });
+
+    alert("Dish Added!");
+
+    // Clear fields
+    document.getElementById("name").value = "";
+    document.getElementById("prep").value = "";
+    document.getElementById("profit").value = "";
+    document.getElementById("ingredient-list").innerHTML = "";
+
+    loadMenu();
 }
 
-function closeModal() { document.getElementById("overlay").classList.remove("open"); }
-function overlayClick(e) { if(e.target.id==="overlay") closeModal(); }
 
-function addIngRow(name="", cost="") {
-  const div = document.createElement("div");
-  div.className = "ing-row";
-  div.innerHTML = `
-    <input type="text" placeholder="Ingredient name" value="${name}" oninput="syncIngCost()"/>
-    <input type="number" placeholder="₹ Cost" value="${cost}" min="0" oninput="syncIngCost()"/>
-    <button class="rm-ing" onclick="this.parentElement.remove();syncIngCost()">−</button>`;
-  document.getElementById("ing-list").appendChild(div);
+// ================= LOAD MENU =================
+async function loadMenu() {
+    const res = await fetch("/dishes");
+    const data = await res.json();
+
+    let html = "";
+
+    data.forEach(d => {
+        html += `
+        <li>
+            <b>${d.name}</b>  
+            | Cost: ₹${d.ingredient_cost}  
+            | Prep: ₹${d.preparation_expense}  
+            | Selling: ₹${d.selling_price}
+            <button onclick="deleteDish(${d.id})">Delete</button>
+        </li>`;
+    });
+
+    document.getElementById("menu").innerHTML = html;
 }
 
-function getIngTotal() {
-  let t=0;
-  document.querySelectorAll(".ing-row").forEach(r=>{
-    t+=parseFloat(r.querySelectorAll("input")[1].value)||0;
-  });
-  return t;
-}
 
-function getCogs() {
-  const prep=parseFloat(document.getElementById("f-prep").value)||0;
-  return getIngTotal()+prep;
-}
-
-// Called when ingredients or prep change → auto-compute sell price from margin
-function onCostChange() {
-  const cogs=getCogs();
-  const margin=parseFloat(document.getElementById("f-margin").value)||75;
-  document.getElementById("f-sell").value=(cogs+margin).toFixed(2);
-  recalc();
-}
-
-// Called when margin changes → update sell price
-function onMarginChange() {
-  const cogs=getCogs();
-  const margin=parseFloat(document.getElementById("f-margin").value)||0;
-  document.getElementById("f-sell").value=(cogs+margin).toFixed(2);
-  recalc();
-}
-
-// Called when sell price is manually edited → back-calculate margin
-function onSellChange() {
-  const cogs=getCogs();
-  const sell=parseFloat(document.getElementById("f-sell").value)||0;
-  const margin=sell-cogs;
-  document.getElementById("f-margin").value=margin.toFixed(2);
-  recalc();
-}
-
-function syncIngCost() { onCostChange(); }
-
-function recalc() {
-  const cogs=getCogs();
-  const sell=parseFloat(document.getElementById("f-sell").value)||(cogs+75);
-  const margin=sell-cogs;
-  document.getElementById("f-cogs").value=cogs.toFixed(2);
-  document.getElementById("p-cogs").textContent="₹"+cogs.toFixed(2);
-  document.getElementById("p-sell").textContent="₹"+sell.toFixed(2);
-  document.getElementById("p-profit").textContent="₹"+margin.toFixed(2);
-  // hint
-  const hint=document.getElementById("margin-hint");
-  if(margin<70) hint.textContent="⚠ below ₹70"; 
-  else if(margin>80) hint.textContent="above ₹80";
-  else hint.textContent="✓ ₹70–80 range";
-  hint.style.color=margin>=70&&margin<=80?"var(--olive)":"var(--rust)";
-}
-
-async function editDish(id) {
-  const r = await fetch(`${API}/dishes/${id}/ingredients`);
-  const ings = await r.json();
-  openModal({...dishes.find(d=>d.id===id), ingredients:ings});
-}
-
-async function saveDish() {
-  const name=document.getElementById("f-name").value.trim();
-  if(!name) return showToast("Dish name is required", true);
-  const prep=parseFloat(document.getElementById("f-prep").value)||0;
-  const ingredients=[]; let ingCost=0;
-  document.querySelectorAll(".ing-row").forEach(r=>{
-    const n=r.querySelectorAll("input")[0].value.trim();
-    const c=parseFloat(r.querySelectorAll("input")[1].value)||0;
-    if(n){ingredients.push({name:n,cost:c});ingCost+=c;}
-  });
-  const cogs=ingCost+prep;
-  const sell=parseFloat(document.getElementById("f-sell").value)||(cogs+75);
-  const margin=parseFloat((sell-cogs).toFixed(2));
-  const body={name,ingredient_cost:ingCost,preparation_expense:prep,profit_margin:margin,ingredients};
-  const id=document.getElementById("dish-id").value;
-  const url=id?`${API}/dishes/${id}`:`${API}/dishes`;
-  try {
-    const r=await fetch(url,{method:id?"PUT":"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
-    if(!r.ok) throw new Error();
-    closeModal(); load(); showToast(id?"Dish updated successfully":"Dish added to menu");
-  } catch { showToast("Failed to save dish", true); }
-}
-
+// ================= DELETE DISH =================
 async function deleteDish(id) {
-  if(!confirm("Remove this dish from the menu?")) return;
-  await fetch(`${API}/dishes/${id}`,{method:"DELETE"});
-  load(); showToast("Dish removed from menu");
+    await fetch("/dishes/" + id, {method: "DELETE"});
+    loadMenu();
 }
 
-function showToast(msg, err=false) {
-  const t=document.getElementById("toast");
-  t.textContent=msg; t.className="toast show"+(err?" err":"");
-  setTimeout(()=>t.className="toast",3200);
+
+// ================= INIT =================
+async function init() {
+    await loadIngredients();
+    loadMenu();
 }
 
-load();
+init();
 </script>
+
 </body>
 </html>
