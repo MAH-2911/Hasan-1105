@@ -62,6 +62,20 @@ def add_ingredient():
     conn.commit()
     return jsonify({"message": "Ingredient added"})
 
+# ── NEW: Autocomplete search endpoint ──────────────────────────────────────────
+@app.route("/ingredients/search", methods=["GET"])
+def search_ingredients():
+    q = request.args.get("q", "").strip()
+    if not q:
+        return jsonify([])
+    conn = get_db()
+    data = conn.execute(
+        "SELECT * FROM ingredients WHERE name LIKE ? ORDER BY name LIMIT 10",
+        (f"%{q}%",)
+    ).fetchall()
+    return jsonify([dict(row) for row in data])
+# ───────────────────────────────────────────────────────────────────────────────
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)

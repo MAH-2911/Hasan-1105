@@ -1,692 +1,677 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Cloud Kitchen — Menu Manager</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Crimson+Pro:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet"/>
-<style>
-:root {
-  --cream: #f7f2e8;
-  --cream2: #ede6d6;
-  --paper: #faf7f0;
-  --espresso: #1c1410;
-  --brown: #3d2b1f;
-  --olive: #5a6b3a;
-  --rust: #b85c2a;
-  --gold: #c49a3c;
-  --muted: #8a7968;
-  --border: #d4c9b0;
-  --border2: #c4b89a;
-  --shadow: rgba(28,20,16,0.12);
-}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>☁ Cloud Kitchen Manager</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
-* { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f6f9;
+      color: #333;
+    }
 
-body {
-  background: var(--cream);
-  color: var(--espresso);
-  font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 16px;
-  min-height: 100vh;
-  background-image:
-    radial-gradient(ellipse at 20% 0%, rgba(196,154,60,0.08) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 100%, rgba(90,107,58,0.06) 0%, transparent 50%);
-}
+    header {
+      background: #1a1a2e;
+      color: white;
+      padding: 18px 32px;
+      font-size: 1.3rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
 
-/* grain overlay */
-body::before {
-  content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
-  opacity:0.025;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-}
+    .container {
+      max-width: 1100px;
+      margin: 32px auto;
+      padding: 0 20px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
 
-/* ── HEADER ── */
-header {
-  position: relative; z-index:1;
-  padding: 0 56px;
-  border-bottom: 1px solid var(--border2);
-  background: var(--paper);
-  box-shadow: 0 1px 0 var(--border), 0 4px 24px var(--shadow);
-  display: flex; align-items: center; justify-content: space-between;
-}
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+    }
 
-.header-left { padding: 28px 0; }
+    .card.full-width {
+      grid-column: 1 / -1;
+    }
 
-.brand-rule {
-  display: flex; align-items: center; gap: 14px; margin-bottom: 4px;
-}
-.brand-rule::before, .brand-rule::after {
-  content:''; flex:1; height:1px; background: var(--border2);
-  max-width: 40px;
-}
-.brand-icon { color: var(--gold); font-size: 1rem; letter-spacing: 4px; }
+    h2 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 18px;
+      color: #1a1a2e;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      border-bottom: 2px solid #f0f0f0;
+      padding-bottom: 10px;
+    }
 
-.brand-name {
-  font-family: 'Playfair Display', serif;
-  font-size: 2.1rem; font-weight: 900; letter-spacing: -0.5px;
-  color: var(--espresso); line-height: 1;
-}
-.brand-name em { color: var(--rust); font-style: italic; }
+    label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #666;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
 
-.brand-sub {
-  font-size: 0.7rem; letter-spacing: 4px; text-transform: uppercase;
-  color: var(--muted); margin-top: 5px; text-align: center;
-}
+    input[type="text"],
+    input[type="number"] {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid #ddd;
+      border-radius: 7px;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border 0.2s;
+      background: #fafafa;
+    }
 
-.add-btn {
-  background: var(--espresso); color: var(--cream);
-  border: none; padding: 13px 28px;
-  font-family: 'Playfair Display', serif; font-size: 0.95rem; font-style: italic;
-  border-radius: 2px; cursor: pointer;
-  transition: all 0.25s; letter-spacing: 0.3px;
-  box-shadow: 3px 3px 0 var(--brown);
-  position: relative;
-}
-.add-btn:hover {
-  background: var(--rust);
-  transform: translate(-1px,-1px);
-  box-shadow: 4px 4px 0 var(--brown);
-}
+    input:focus { border-color: #4f46e5; background: white; }
 
-/* ── STATS ── */
-.stats-row {
-  position: relative; z-index:1;
-  display: grid; grid-template-columns: repeat(4, 1fr);
-  border-bottom: 1px solid var(--border);
-  background: var(--paper);
-}
-.stat-card {
-  padding: 22px 32px; border-right: 1px solid var(--border);
-  position: relative; overflow: hidden;
-  animation: fadeSlideUp 0.5s ease both;
-}
-.stat-card:nth-child(1){animation-delay:0.05s}
-.stat-card:nth-child(2){animation-delay:0.1s}
-.stat-card:nth-child(3){animation-delay:0.15s}
-.stat-card:nth-child(4){animation-delay:0.2s; border-right:none}
+    .form-row {
+      margin-bottom: 14px;
+    }
 
-@keyframes fadeSlideUp {
-  from { opacity:0; transform:translateY(12px); }
-  to   { opacity:1; transform:translateY(0); }
-}
+    .form-inline {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
 
-.stat-card::after {
-  content:''; position:absolute; bottom:0; left:32px; right:32px;
-  height:2px; background: linear-gradient(90deg, var(--gold), transparent);
-  opacity:0; transition:opacity 0.3s;
-}
-.stat-card:hover::after { opacity:1; }
+    button {
+      cursor: pointer;
+      border: none;
+      border-radius: 7px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      transition: background 0.2s, transform 0.1s;
+    }
 
-.stat-label {
-  font-size: 0.62rem; letter-spacing: 3px; text-transform: uppercase;
-  color: var(--muted); margin-bottom: 8px;
-}
-.stat-value {
-  font-family: 'Playfair Display', serif;
-  font-size: 2rem; font-weight: 700; line-height: 1;
-  color: var(--espresso);
-}
-.stat-value.gold { color: var(--gold); }
-.stat-value.olive { color: var(--olive); }
-.stat-value.rust { color: var(--rust); }
-.stat-note { font-size: 0.72rem; color: var(--muted); margin-top: 4px; font-style: italic; }
+    button:active { transform: scale(0.97); }
 
-/* ── MAIN ── */
-main { position:relative; z-index:1; padding: 44px 56px; }
+    .btn-primary {
+      background: #4f46e5;
+      color: white;
+      padding: 10px 18px;
+    }
 
-.section-header {
-  display: flex; align-items: baseline; gap: 16px; margin-bottom: 28px;
-}
-.section-title {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.5rem; font-weight: 700; font-style: italic;
-  color: var(--espresso);
-}
-.section-rule { flex:1; height:1px; background: var(--border); }
-.section-count {
-  font-size: 0.7rem; letter-spacing: 2px; text-transform: uppercase;
-  color: var(--muted);
-}
+    .btn-primary:hover { background: #4338ca; }
 
-/* ── CARDS GRID ── */
-.dishes-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 20px;
-}
+    .btn-danger {
+      background: #fee2e2;
+      color: #dc2626;
+      padding: 5px 10px;
+      font-size: 0.78rem;
+    }
 
-.dish-card {
-  background: var(--paper);
-  border: 1px solid var(--border);
-  border-radius: 3px;
-  overflow: hidden;
-  box-shadow: 2px 3px 12px var(--shadow);
-  transition: all 0.25s;
-  animation: fadeSlideUp 0.4s ease both;
-}
-.dish-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 4px 8px 28px rgba(28,20,16,0.18);
-  border-color: var(--border2);
-}
+    .btn-danger:hover { background: #fecaca; }
 
-.card-top {
-  padding: 20px 22px 16px;
-  border-bottom: 1px solid var(--border);
-  position: relative;
-}
-.card-number {
-  font-size: 0.6rem; letter-spacing: 3px; color: var(--muted);
-  text-transform: uppercase; margin-bottom: 4px;
-}
-.card-name {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.25rem; font-weight: 700; color: var(--espresso);
-  line-height: 1.2;
-}
-.card-actions {
-  position: absolute; top: 16px; right: 16px;
-  display: flex; gap: 6px; opacity: 0; transition: opacity 0.2s;
-}
-.dish-card:hover .card-actions { opacity: 1; }
-.card-btn {
-  width: 30px; height: 30px; border-radius: 2px;
-  border: 1px solid var(--border); background: var(--cream);
-  cursor: pointer; display: flex; align-items: center; justify-content: center;
-  font-size: 0.85rem; color: var(--muted); transition: all 0.15s;
-}
-.card-btn:hover.edit { background:var(--espresso); color:var(--cream); border-color:var(--espresso); }
-.card-btn:hover.del { background:var(--rust); color:#fff; border-color:var(--rust); }
+    .btn-ghost {
+      background: #f3f4f6;
+      color: #374151;
+      padding: 7px 14px;
+      font-size: 0.82rem;
+    }
 
-.card-costs {
-  padding: 16px 22px;
-  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
-  border-bottom: 1px solid var(--border);
-}
-.cost-item { display: flex; flex-direction: column; gap: 3px; }
-.cost-label { font-size: 0.6rem; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); }
-.cost-value { font-size: 1rem; font-weight: 500; color: var(--brown); }
+    .btn-ghost:hover { background: #e5e7eb; }
 
-.card-bottom {
-  padding: 14px 22px;
-  display: flex; align-items: center; justify-content: space-between;
-  background: linear-gradient(135deg, var(--espresso) 0%, #2e1f14 100%);
-}
-.cb-left { display: flex; flex-direction: column; gap: 2px; }
-.cb-label { font-size: 0.58rem; letter-spacing: 2px; text-transform: uppercase; color: rgba(250,247,240,0.45); }
-.cb-cogs { font-size: 0.85rem; color: rgba(250,247,240,0.65); }
-.selling-price {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.6rem; font-weight: 900; color: var(--gold);
-  letter-spacing: -0.5px;
-}
-.profit-badge {
-  display: flex; flex-direction: column; align-items: flex-end; gap: 2px;
-}
-.profit-label { font-size: 0.58rem; letter-spacing: 2px; text-transform: uppercase; color: rgba(250,247,240,0.45); }
-.profit-val { font-size: 0.95rem; font-weight: 500; color: #7ec99a; }
+    /* ── Ingredients block inside Add Dish ── */
+    #ingredient-rows { margin-bottom: 10px; }
 
-/* ── EMPTY ── */
-.empty-state {
-  text-align: center; padding: 100px 20px; color: var(--muted);
-}
-.empty-ornament {
-  font-family: 'Playfair Display', serif;
-  font-size: 4rem; opacity: 0.15; color: var(--espresso);
-  margin-bottom: 20px; font-style: italic;
-}
-.empty-title {
-  font-family: 'Playfair Display', serif; font-size: 1.3rem;
-  font-style: italic; color: var(--brown); margin-bottom: 8px;
-}
-.empty-sub { font-size: 0.85rem; color: var(--muted); }
+    .ingredient-row {
+      display: grid;
+      grid-template-columns: 1fr 80px 90px 32px;
+      gap: 8px;
+      align-items: start;
+      margin-bottom: 8px;
+    }
 
-/* ── MODAL ── */
-.overlay {
-  position: fixed; inset: 0;
-  background: rgba(28,20,16,0.65);
-  backdrop-filter: blur(3px);
-  z-index: 200; display: none;
-  align-items: center; justify-content: center;
-  padding: 20px;
-}
-.overlay.open { display: flex; }
+    .ingredient-row .remove-btn {
+      background: none;
+      border: none;
+      color: #dc2626;
+      font-size: 1.1rem;
+      cursor: pointer;
+      padding: 8px 4px;
+      line-height: 1;
+    }
 
-.modal {
-  background: var(--paper);
-  border: 1px solid var(--border2);
-  border-radius: 3px;
-  width: 100%; max-width: 560px;
-  max-height: 92vh; overflow-y: auto;
-  box-shadow: 8px 12px 48px rgba(28,20,16,0.4);
-  animation: modalIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-@keyframes modalIn {
-  from { opacity:0; transform: scale(0.94) translateY(20px); }
-  to   { opacity:1; transform: scale(1) translateY(0); }
-}
+    /* ── Autocomplete ── */
+    .autocomplete-wrap {
+      position: relative;
+    }
 
-.modal-header {
-  padding: 28px 32px 22px;
-  border-bottom: 1px solid var(--border);
-  text-align: center; position: relative;
-}
-.modal-ornament {
-  font-size: 0.65rem; letter-spacing: 5px; text-transform: uppercase;
-  color: var(--gold); margin-bottom: 8px;
-}
-.modal-title {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.5rem; font-weight: 700; font-style: italic;
-}
-.close-btn {
-  position: absolute; top: 24px; right: 24px;
-  background: none; border: 1px solid var(--border);
-  color: var(--muted); width: 32px; height: 32px;
-  border-radius: 2px; cursor: pointer; font-size: 1rem;
-  display: flex; align-items: center; justify-content: center;
-  transition: all 0.15s;
-}
-.close-btn:hover { background: var(--espresso); color: var(--cream); border-color: var(--espresso); }
+    .autocomplete-wrap input {
+      padding-right: 28px;
+    }
 
-.modal-body { padding: 28px 32px; display: flex; flex-direction: column; gap: 22px; }
+    .autocomplete-wrap .clear-btn {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: #aaa;
+      font-size: 0.95rem;
+      cursor: pointer;
+      padding: 0;
+      display: none;
+      line-height: 1;
+    }
 
-.field { display: flex; flex-direction: column; gap: 7px; }
-.field label {
-  font-size: 0.62rem; letter-spacing: 3px; text-transform: uppercase;
-  color: var(--muted);
-}
-.field input {
-  background: var(--cream); border: 1px solid var(--border);
-  color: var(--espresso); padding: 11px 15px;
-  font-family: 'Crimson Pro', serif; font-size: 1rem;
-  border-radius: 2px; outline: none; transition: border-color 0.2s;
-}
-.field input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(196,154,60,0.1); }
-.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .autocomplete-wrap input:not(:placeholder-shown) + .clear-btn { display: block; }
 
-/* ingredients */
-.ing-section-label {
-  font-size: 0.62rem; letter-spacing: 3px; text-transform: uppercase;
-  color: var(--muted); margin-bottom: 10px;
-}
-.ing-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
-.ing-row { display: grid; grid-template-columns: 1fr 130px 34px; gap: 8px; align-items: center; }
-.ing-row input {
-  background: var(--cream); border: 1px solid var(--border);
-  color: var(--espresso); padding: 9px 12px;
-  font-family: 'Crimson Pro', serif; font-size: 0.95rem;
-  border-radius: 2px; outline: none; transition: border-color 0.2s;
-}
-.ing-row input:focus { border-color: var(--gold); }
-.rm-ing { background: none; border: 1px solid var(--border); color: var(--rust); width:34px; height:36px; border-radius:2px; cursor:pointer; font-size:1.1rem; transition:all 0.15s; }
-.rm-ing:hover { background:var(--rust); color:#fff; border-color:var(--rust); }
-.add-ing-btn {
-  background: none; border: 1px dashed var(--border2);
-  color: var(--muted); padding: 9px; border-radius: 2px;
-  cursor: pointer; font-family: 'Crimson Pro', serif;
-  font-size: 0.85rem; font-style: italic; width: 100%;
-  transition: all 0.2s; letter-spacing: 0.3px;
-}
-.add-ing-btn:hover { border-color: var(--olive); color: var(--olive); background: rgba(90,107,58,0.04); }
+    .suggestions-box {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      z-index: 100;
+      max-height: 220px;
+      overflow-y: auto;
+      display: none;
+    }
 
-/* preview */
-.cogs-preview {
-  background: var(--espresso);
-  border-radius: 3px; padding: 18px 22px;
-  display: grid; grid-template-columns: 1fr 1px 1fr 1px 1fr;
-  gap: 0; align-items: center;
-}
-.divider-v { width:1px; background: rgba(250,247,240,0.12); height:40px; justify-self:center; }
-.cp-item { text-align: center; padding: 0 12px; }
-.cp-label { font-size: 0.58rem; letter-spacing: 3px; text-transform: uppercase; color: rgba(250,247,240,0.4); margin-bottom: 6px; }
-.cp-val { font-family: 'Playfair Display', serif; font-size: 1.2rem; font-weight: 700; color: rgba(250,247,240,0.8); }
-.cp-val.gold { color: var(--gold); font-size: 1.4rem; }
-.cp-val.green { color: #7ec99a; }
+    .suggestions-box.open { display: block; }
 
-.modal-footer {
-  padding: 20px 32px 28px;
-  display: flex; gap: 12px; justify-content: flex-end;
-  border-top: 1px solid var(--border);
-}
-.btn-cancel {
-  background: none; border: 1px solid var(--border); color: var(--muted);
-  padding: 11px 22px; border-radius: 2px; cursor: pointer;
-  font-family: 'Crimson Pro', serif; font-size: 0.95rem;
-  transition: all 0.15s;
-}
-.btn-cancel:hover { border-color: var(--brown); color: var(--brown); }
-.btn-save {
-  background: var(--espresso); color: var(--cream);
-  border: none; padding: 11px 28px; border-radius: 2px;
-  cursor: pointer; font-family: 'Playfair Display', serif;
-  font-size: 0.95rem; font-style: italic;
-  box-shadow: 2px 2px 0 var(--brown);
-  transition: all 0.2s;
-}
-.btn-save:hover { background: var(--rust); transform:translate(-1px,-1px); box-shadow:3px 3px 0 var(--brown); }
+    .suggestion-item {
+      padding: 9px 14px;
+      font-size: 0.88rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.15s;
+    }
 
-/* toast */
-.toast {
-  position: fixed; bottom: 28px; right: 28px;
-  background: var(--espresso); color: var(--cream);
-  border-left: 3px solid var(--olive);
-  padding: 13px 22px; border-radius: 2px;
-  font-size: 0.85rem; font-style: italic;
-  transform: translateY(60px); opacity: 0;
-  transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
-  z-index: 300; box-shadow: 3px 3px 0 var(--brown);
-}
-.toast.show { transform: translateY(0); opacity: 1; }
-.toast.err { border-left-color: var(--rust); }
+    .suggestion-item:hover,
+    .suggestion-item.active { background: #ede9fe; color: #4f46e5; }
 
-/* scrollbar */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--cream); }
-::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
-</style>
+    .suggestion-item .icon { font-size: 0.75rem; color: #9ca3af; }
+
+    .suggestion-new {
+      padding: 9px 14px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      color: #4f46e5;
+      border-top: 1px solid #f3f4f6;
+      font-weight: 600;
+      transition: background 0.15s;
+    }
+
+    .suggestion-new:hover { background: #ede9fe; }
+
+    /* Hidden id store */
+    .ingredient-row input[name="ing-id"] { display: none; }
+
+    /* ── Dishes table ── */
+    .table-wrap { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+
+    thead th {
+      background: #f8f8fc;
+      padding: 10px 14px;
+      text-align: left;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #888;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    tbody tr { border-bottom: 1px solid #f3f3f3; transition: background 0.15s; }
+    tbody tr:hover { background: #fafafe; }
+
+    tbody td {
+      padding: 11px 14px;
+      color: #444;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 99px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .badge-green { background: #dcfce7; color: #16a34a; }
+    .badge-blue  { background: #dbeafe; color: #2563eb; }
+
+    .empty-state {
+      text-align: center;
+      color: #bbb;
+      padding: 32px;
+      font-size: 0.9rem;
+    }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #1a1a2e;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 9px;
+      font-size: 0.88rem;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.3s, transform 0.3s;
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    #toast.show { opacity: 1; transform: translateY(0); }
+
+    .actions-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 6px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 700px) {
+      .container { grid-template-columns: 1fr; }
+      .card.full-width { grid-column: 1; }
+      .form-inline { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
 <body>
 
-<header>
-  <div class="header-left">
-    <div class="brand-rule"><span class="brand-icon">✦ ✦ ✦</span></div>
-    <div class="brand-name">Cloud<em>Kitchen</em></div>
-    <div class="brand-sub">Menu &amp; Cost Manager</div>
-  </div>
-  <button class="add-btn" onclick="openModal()">＋ Add New Dish</button>
-</header>
+<header>☁ Cloud Kitchen Manager</header>
 
-<div class="stats-row">
-  <div class="stat-card">
-    <div class="stat-label">Dishes on Menu</div>
-    <div class="stat-value rust" id="s-total">0</div>
-    <div class="stat-note">active items</div>
+<div class="container">
+
+  <!-- ── Add New Dish ── -->
+  <div class="card">
+    <h2>Add New Dish</h2>
+
+    <div class="form-row">
+      <label>Dish Name</label>
+      <input type="text" id="dish-name" placeholder="e.g. Butter Chicken" />
+    </div>
+
+    <div class="form-inline">
+      <div class="form-row">
+        <label>Prep Expense (₹)</label>
+        <input type="number" id="dish-prep" placeholder="0" min="0" step="0.01" />
+      </div>
+      <div class="form-row">
+        <label>Profit Margin (₹)</label>
+        <input type="number" id="dish-profit" placeholder="75" min="0" step="0.01" />
+      </div>
+    </div>
+
+    <label style="margin-bottom:8px;">Ingredients</label>
+    <div style="display:grid;grid-template-columns:1fr 80px 90px 32px;gap:8px;margin-bottom:4px;">
+      <span style="font-size:0.72rem;color:#aaa;text-transform:uppercase;letter-spacing:.4px;padding-left:2px;">Name</span>
+      <span style="font-size:0.72rem;color:#aaa;text-transform:uppercase;letter-spacing:.4px;">Qty</span>
+      <span style="font-size:0.72rem;color:#aaa;text-transform:uppercase;letter-spacing:.4px;">Price (₹)</span>
+      <span></span>
+    </div>
+
+    <div id="ingredient-rows"></div>
+
+    <div class="actions-row">
+      <button class="btn-ghost" onclick="addIngredientRow()">+ Add Ingredient</button>
+      <button class="btn-primary" onclick="submitDish()">💾 Save Dish</button>
+    </div>
   </div>
-  <div class="stat-card">
-    <div class="stat-label">Average COGS</div>
-    <div class="stat-value" id="s-cogs">₹0</div>
-    <div class="stat-note">per dish</div>
+
+  <!-- ── Ingredients Master ── -->
+  <div class="card">
+    <h2>Ingredients Master</h2>
+    <div class="form-row" style="display:flex;gap:10px;">
+      <input type="text" id="new-ingredient" placeholder="Ingredient name..." style="flex:1;" />
+      <button class="btn-primary" onclick="addIngredient()">+ Add</button>
+    </div>
+    <div id="ingredient-list" style="max-height:280px;overflow-y:auto;"></div>
   </div>
-  <div class="stat-card">
-    <div class="stat-label">Avg Selling Price</div>
-    <div class="stat-value gold" id="s-price">₹0</div>
-    <div class="stat-note">per dish</div>
+
+  <!-- ── Dishes Table ── -->
+  <div class="card full-width">
+    <h2>All Dishes</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Dish</th>
+            <th>Ingredient Cost</th>
+            <th>Prep Expense</th>
+            <th>COGS</th>
+            <th>Profit Margin</th>
+            <th>Selling Price</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="dishes-tbody">
+          <tr><td colspan="7" class="empty-state">Loading dishes…</td></tr>
+        </tbody>
+      </table>
+    </div>
   </div>
-  <div class="stat-card">
-    <div class="stat-label">Avg Profit</div>
-    <div class="stat-value olive" id="s-profit">₹0</div>
-    <div class="stat-note">per dish</div>
-  </div>
+
 </div>
 
-<main>
-  <div class="section-header">
-    <span class="section-title">The Menu</span>
-    <span class="section-rule"></span>
-    <span class="section-count" id="dish-count">0 dishes</span>
-  </div>
-  <div class="dishes-grid" id="dishes-grid"></div>
-  <div class="empty-state" id="empty" style="display:none">
-    <div class="empty-ornament">✦</div>
-    <div class="empty-title">Your menu is empty</div>
-    <div class="empty-sub">Add your first dish to start tracking costs &amp; profits.</div>
-  </div>
-</main>
-
-<!-- MODAL -->
-<div class="overlay" id="overlay" onclick="overlayClick(event)">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-ornament">✦ Cloud Kitchen ✦</div>
-      <div class="modal-title" id="modal-title">Add New Dish</div>
-      <button class="close-btn" onclick="closeModal()">✕</button>
-    </div>
-    <div class="modal-body">
-      <input type="hidden" id="dish-id"/>
-      <div class="field">
-        <label>Dish Name</label>
-        <input type="text" id="f-name" placeholder="e.g. Butter Chicken"/>
-      </div>
-      <div>
-        <div class="ing-section-label">Ingredients &amp; Costs</div>
-        <div class="ing-list" id="ing-list"></div>
-        <button class="add-ing-btn" onclick="addIngRow()">+ Add ingredient</button>
-      </div>
-      <div class="row2">
-        <div class="field">
-          <label>Preparation Expense (₹)</label>
-          <input type="number" id="f-prep" placeholder="0" min="0" oninput="onCostChange()"/>
-        </div>
-        <div class="field">
-          <label>Profit Margin (₹) <span id="margin-hint" style="color:var(--muted);font-size:0.7rem;font-style:italic;letter-spacing:0"></span></label>
-          <input type="number" id="f-margin" value="75" min="0" oninput="onMarginChange()"/>
-        </div>
-      </div>
-      <div class="row2">
-        <div class="field">
-          <label>Selling Price (₹) <span style="font-size:0.68rem;color:var(--olive);font-style:italic;letter-spacing:0">— auto or override</span></label>
-          <input type="number" id="f-sell" placeholder="0" min="0" oninput="onSellChange()" style="border-color:var(--gold);background:rgba(196,154,60,0.06);font-weight:500"/>
-        </div>
-        <div class="field">
-          <label>COGS (calculated)</label>
-          <input type="number" id="f-cogs" readonly style="color:var(--muted);cursor:not-allowed;background:var(--cream2)" tabindex="-1"/>
-        </div>
-      </div>
-      <div class="cogs-preview">
-        <div class="cp-item">
-          <div class="cp-label">COGS</div>
-          <div class="cp-val" id="p-cogs">₹0</div>
-        </div>
-        <div class="divider-v"></div>
-        <div class="cp-item">
-          <div class="cp-label">Selling Price</div>
-          <div class="cp-val gold" id="p-sell">₹0</div>
-        </div>
-        <div class="divider-v"></div>
-        <div class="cp-item">
-          <div class="cp-label">Profit</div>
-          <div class="cp-val green" id="p-profit">₹0</div>
-        </div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
-      <button class="btn-save" onclick="saveDish()">Save Dish</button>
-    </div>
-  </div>
-</div>
-
-<div class="toast" id="toast"></div>
+<div id="toast"></div>
 
 <script>
-const API = "/api";
-let dishes = [];
+  // ── State ──────────────────────────────────────────────────────────────────
+  let allIngredients = [];
 
-async function load() {
-  try {
-    const r = await fetch(`${API}/dishes`);
-    dishes = await r.json();
-    render();
-  } catch { showToast("Cannot connect to server", true); }
-}
+  // ── Toast ──────────────────────────────────────────────────────────────────
+  function showToast(msg) {
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    setTimeout(() => t.classList.remove("show"), 2800);
+  }
 
-function render() {
-  const grid = document.getElementById("dishes-grid");
-  const empty = document.getElementById("empty");
-  const count = document.getElementById("dish-count");
-  count.textContent = `${dishes.length} dish${dishes.length!==1?'es':''}`;
-  if (!dishes.length) { grid.innerHTML=""; empty.style.display="block"; updateStats([]); return; }
-  empty.style.display="none";
-  grid.innerHTML = dishes.map((d,i) => `
-    <div class="dish-card" style="animation-delay:${i*0.05}s">
-      <div class="card-top">
-        <div class="card-number">No. ${String(i+1).padStart(2,'0')}</div>
-        <div class="card-name">${d.name}</div>
-        <div class="card-actions">
-          <button class="card-btn edit" onclick="editDish(${d.id})" title="Edit">✎</button>
-          <button class="card-btn del" onclick="deleteDish(${d.id})" title="Delete">✕</button>
-        </div>
-      </div>
-      <div class="card-costs">
-        <div class="cost-item">
-          <span class="cost-label">Ingredients</span>
-          <span class="cost-value">₹${d.ingredient_cost.toFixed(2)}</span>
-        </div>
-        <div class="cost-item">
-          <span class="cost-label">Prep Expense</span>
-          <span class="cost-value">₹${d.preparation_expense.toFixed(2)}</span>
-        </div>
-      </div>
-      <div class="card-bottom">
-        <div class="cb-left">
-          <span class="cb-label">Selling Price</span>
-          <span class="cb-cogs">COGS ₹${d.cogs.toFixed(0)} + ₹${d.profit_margin.toFixed(0)}</span>
-        </div>
-        <div class="selling-price">₹${d.selling_price.toFixed(2)}</div>
-        <div class="profit-badge">
-          <span class="profit-label">Profit</span>
-          <span class="profit-val">+₹${d.profit_margin.toFixed(0)}</span>
-        </div>
-      </div>
-    </div>`).join("");
-  updateStats(dishes);
-}
+  // ── Fetch & render dishes ──────────────────────────────────────────────────
+  async function loadDishes() {
+    const res = await fetch("/dishes");
+    const dishes = await res.json();
+    const tbody = document.getElementById("dishes-tbody");
 
-function updateStats(data) {
-  const n = data.length;
-  document.getElementById("s-total").textContent = n;
-  document.getElementById("s-cogs").textContent = n ? "₹"+(data.reduce((a,d)=>a+d.cogs,0)/n).toFixed(0) : "₹0";
-  document.getElementById("s-price").textContent = n ? "₹"+(data.reduce((a,d)=>a+d.selling_price,0)/n).toFixed(0) : "₹0";
-  document.getElementById("s-profit").textContent = n ? "₹"+(data.reduce((a,d)=>a+d.profit_margin,0)/n).toFixed(0) : "₹0";
-}
+    if (!dishes.length) {
+      tbody.innerHTML = `<tr><td colspan="7" class="empty-state">No dishes yet. Add one above!</td></tr>`;
+      return;
+    }
 
-function openModal(dish=null) {
-  document.getElementById("overlay").classList.add("open");
-  document.getElementById("modal-title").textContent = dish ? "Edit Dish" : "Add New Dish";
-  document.getElementById("dish-id").value = dish ? dish.id : "";
-  document.getElementById("f-name").value = dish ? dish.name : "";
-  document.getElementById("f-prep").value = dish ? dish.preparation_expense : "";
-  document.getElementById("f-margin").value = dish ? dish.profit_margin : 75;
-  document.getElementById("f-sell").value = dish ? dish.selling_price : "";
-  document.getElementById("ing-list").innerHTML = "";
-  if (dish && dish.ingredients) dish.ingredients.forEach(i => addIngRow(i.name, i.cost));
-  else addIngRow();
-  recalc();
-}
+    tbody.innerHTML = dishes.map(d => `
+      <tr>
+        <td><strong>${d.name}</strong></td>
+        <td>₹${(+d.ingredient_cost).toFixed(2)}</td>
+        <td>₹${(+d.preparation_expense).toFixed(2)}</td>
+        <td><span class="badge badge-blue">₹${(+d.cogs).toFixed(2)}</span></td>
+        <td>₹${(+d.profit_margin).toFixed(2)}</td>
+        <td><span class="badge badge-green">₹${(+d.selling_price).toFixed(2)}</span></td>
+        <td><button class="btn-danger" onclick="deleteDish(${d.id})">🗑 Delete</button></td>
+      </tr>
+    `).join("");
+  }
 
-function closeModal() { document.getElementById("overlay").classList.remove("open"); }
-function overlayClick(e) { if(e.target.id==="overlay") closeModal(); }
+  // ── Fetch & render ingredients master list ─────────────────────────────────
+  async function loadIngredients() {
+    const res = await fetch("/ingredients");
+    allIngredients = await res.json();
+    const list = document.getElementById("ingredient-list");
 
-function addIngRow(name="", cost="") {
-  const div = document.createElement("div");
-  div.className = "ing-row";
-  div.innerHTML = `
-    <input type="text" placeholder="Ingredient name" value="${name}" oninput="syncIngCost()"/>
-    <input type="number" placeholder="₹ Cost" value="${cost}" min="0" oninput="syncIngCost()"/>
-    <button class="rm-ing" onclick="this.parentElement.remove();syncIngCost()">−</button>`;
-  document.getElementById("ing-list").appendChild(div);
-}
+    if (!allIngredients.length) {
+      list.innerHTML = `<div class="empty-state">No ingredients yet.</div>`;
+      return;
+    }
 
-function getIngTotal() {
-  let t=0;
-  document.querySelectorAll(".ing-row").forEach(r=>{
-    t+=parseFloat(r.querySelectorAll("input")[1].value)||0;
+    list.innerHTML = allIngredients.map(i =>
+      `<div style="padding:7px 4px;border-bottom:1px solid #f5f5f5;font-size:0.88rem;color:#555;">
+        🥬 ${i.name}
+      </div>`
+    ).join("");
+  }
+
+  // ── Add ingredient to master list ─────────────────────────────────────────
+  async function addIngredient() {
+    const input = document.getElementById("new-ingredient");
+    const name = input.value.trim();
+    if (!name) return;
+
+    await fetch("/ingredients", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name })
+    });
+
+    input.value = "";
+    showToast(`✅ "${name}" added to ingredients`);
+    loadIngredients();
+  }
+
+  document.getElementById("new-ingredient").addEventListener("keydown", e => {
+    if (e.key === "Enter") addIngredient();
   });
-  return t;
-}
 
-function getCogs() {
-  const prep=parseFloat(document.getElementById("f-prep").value)||0;
-  return getIngTotal()+prep;
-}
+  // ── Delete dish ────────────────────────────────────────────────────────────
+  async function deleteDish(id) {
+    if (!confirm("Delete this dish?")) return;
+    await fetch(`/dishes/${id}`, { method: "DELETE" });
+    showToast("🗑 Dish deleted");
+    loadDishes();
+  }
 
-// Called when ingredients or prep change → auto-compute sell price from margin
-function onCostChange() {
-  const cogs=getCogs();
-  const margin=parseFloat(document.getElementById("f-margin").value)||75;
-  document.getElementById("f-sell").value=(cogs+margin).toFixed(2);
-  recalc();
-}
+  // ── Ingredient row with autocomplete ──────────────────────────────────────
+  let rowCount = 0;
 
-// Called when margin changes → update sell price
-function onMarginChange() {
-  const cogs=getCogs();
-  const margin=parseFloat(document.getElementById("f-margin").value)||0;
-  document.getElementById("f-sell").value=(cogs+margin).toFixed(2);
-  recalc();
-}
+  function addIngredientRow() {
+    rowCount++;
+    const id = `row-${rowCount}`;
+    const container = document.getElementById("ingredient-rows");
 
-// Called when sell price is manually edited → back-calculate margin
-function onSellChange() {
-  const cogs=getCogs();
-  const sell=parseFloat(document.getElementById("f-sell").value)||0;
-  const margin=sell-cogs;
-  document.getElementById("f-margin").value=margin.toFixed(2);
-  recalc();
-}
+    const row = document.createElement("div");
+    row.className = "ingredient-row";
+    row.id = id;
+    row.innerHTML = `
+      <div class="autocomplete-wrap">
+        <input type="hidden" name="ing-id" value="" />
+        <input
+          type="text"
+          name="ing-name"
+          placeholder="Search ingredient…"
+          autocomplete="off"
+          oninput="handleIngredientInput(this, '${id}')"
+          onkeydown="handleIngredientKey(event, '${id}')"
+          onfocus="handleIngredientInput(this, '${id}')"
+          onblur="scheduleClose('${id}')"
+        />
+        <button class="clear-btn" tabindex="-1" onclick="clearIngredientRow('${id}')">✕</button>
+        <div class="suggestions-box" id="sug-${id}"></div>
+      </div>
+      <input type="number" name="ing-qty" placeholder="1" min="0" step="0.01" value="1" />
+      <input type="number" name="ing-price" placeholder="0.00" min="0" step="0.01" />
+      <button class="remove-btn" onclick="removeRow('${id}')" title="Remove">✕</button>
+    `;
 
-function syncIngCost() { onCostChange(); }
+    container.appendChild(row);
+  }
 
-function recalc() {
-  const cogs=getCogs();
-  const sell=parseFloat(document.getElementById("f-sell").value)||(cogs+75);
-  const margin=sell-cogs;
-  document.getElementById("f-cogs").value=cogs.toFixed(2);
-  document.getElementById("p-cogs").textContent="₹"+cogs.toFixed(2);
-  document.getElementById("p-sell").textContent="₹"+sell.toFixed(2);
-  document.getElementById("p-profit").textContent="₹"+margin.toFixed(2);
-  // hint
-  const hint=document.getElementById("margin-hint");
-  if(margin<70) hint.textContent="⚠ below ₹70"; 
-  else if(margin>80) hint.textContent="above ₹80";
-  else hint.textContent="✓ ₹70–80 range";
-  hint.style.color=margin>=70&&margin<=80?"var(--olive)":"var(--rust)";
-}
+  function removeRow(rowId) {
+    document.getElementById(rowId)?.remove();
+  }
 
-async function editDish(id) {
-  const r = await fetch(`${API}/dishes/${id}/ingredients`);
-  const ings = await r.json();
-  openModal({...dishes.find(d=>d.id===id), ingredients:ings});
-}
+  function clearIngredientRow(rowId) {
+    const row = document.getElementById(rowId);
+    row.querySelector('[name="ing-id"]').value = "";
+    row.querySelector('[name="ing-name"]').value = "";
+    closeSuggestions(rowId);
+  }
 
-async function saveDish() {
-  const name=document.getElementById("f-name").value.trim();
-  if(!name) return showToast("Dish name is required", true);
-  const prep=parseFloat(document.getElementById("f-prep").value)||0;
-  const ingredients=[]; let ingCost=0;
-  document.querySelectorAll(".ing-row").forEach(r=>{
-    const n=r.querySelectorAll("input")[0].value.trim();
-    const c=parseFloat(r.querySelectorAll("input")[1].value)||0;
-    if(n){ingredients.push({name:n,cost:c});ingCost+=c;}
-  });
-  const cogs=ingCost+prep;
-  const sell=parseFloat(document.getElementById("f-sell").value)||(cogs+75);
-  const margin=parseFloat((sell-cogs).toFixed(2));
-  const body={name,ingredient_cost:ingCost,preparation_expense:prep,profit_margin:margin,ingredients};
-  const id=document.getElementById("dish-id").value;
-  const url=id?`${API}/dishes/${id}`:`${API}/dishes`;
-  try {
-    const r=await fetch(url,{method:id?"PUT":"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
-    if(!r.ok) throw new Error();
-    closeModal(); load(); showToast(id?"Dish updated successfully":"Dish added to menu");
-  } catch { showToast("Failed to save dish", true); }
-}
+  // ── Autocomplete logic ─────────────────────────────────────────────────────
+  const debounceTimers = {};
 
-async function deleteDish(id) {
-  if(!confirm("Remove this dish from the menu?")) return;
-  await fetch(`${API}/dishes/${id}`,{method:"DELETE"});
-  load(); showToast("Dish removed from menu");
-}
+  function handleIngredientInput(input, rowId) {
+    const q = input.value.trim();
+    clearTimeout(debounceTimers[rowId]);
+    debounceTimers[rowId] = setTimeout(() => fetchSuggestions(q, rowId), 220);
+  }
 
-function showToast(msg, err=false) {
-  const t=document.getElementById("toast");
-  t.textContent=msg; t.className="toast show"+(err?" err":"");
-  setTimeout(()=>t.className="toast",3200);
-}
+  async function fetchSuggestions(q, rowId) {
+    const box = document.getElementById(`sug-${rowId}`);
+    if (!box) return;
 
-load();
+    let results = [];
+
+    if (q.length === 0) {
+      // Show all ingredients on focus with empty input
+      results = allIngredients.slice(0, 10);
+    } else {
+      const res = await fetch(`/ingredients/search?q=${encodeURIComponent(q)}`);
+      results = await res.json();
+    }
+
+    renderSuggestions(results, q, rowId);
+  }
+
+  function renderSuggestions(results, q, rowId) {
+    const box = document.getElementById(`sug-${rowId}`);
+    if (!box) return;
+
+    const items = results.map((ing, idx) => {
+      const highlighted = ing.name.replace(
+        new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, "gi"),
+        `<strong>$1</strong>`
+      );
+      return `<div class="suggestion-item" data-idx="${idx}" data-id="${ing.id}" data-name="${ing.name}"
+                   onmousedown="selectIngredient('${rowId}', ${ing.id}, '${ing.name.replace(/'/g,"\\'")}')">
+                <span class="icon">🥬</span> ${highlighted}
+              </div>`;
+    }).join("");
+
+    const addNew = q
+      ? `<div class="suggestion-new" onmousedown="createAndSelect('${rowId}', '${q.replace(/'/g,"\\'")}')">
+           ＋ Add "<strong>${q}</strong>" as new ingredient
+         </div>`
+      : "";
+
+    if (!items && !addNew) {
+      box.innerHTML = `<div class="suggestion-item" style="color:#aaa;cursor:default;">No matches found</div>`;
+    } else {
+      box.innerHTML = items + addNew;
+    }
+
+    box.classList.add("open");
+  }
+
+  function selectIngredient(rowId, ingId, ingName) {
+    const row = document.getElementById(rowId);
+    if (!row) return;
+    row.querySelector('[name="ing-id"]').value = ingId;
+    row.querySelector('[name="ing-name"]').value = ingName;
+    closeSuggestions(rowId);
+  }
+
+  async function createAndSelect(rowId, name) {
+    const res = await fetch("/ingredients", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name })
+    });
+
+    await loadIngredients(); // refresh master list
+
+    // Find the new ID
+    const found = allIngredients.find(i => i.name.toLowerCase() === name.toLowerCase());
+    const newId = found ? found.id : 0;
+
+    selectIngredient(rowId, newId, name);
+    showToast(`✅ "${name}" added & selected`);
+  }
+
+  // Keyboard navigation inside suggestions
+  function handleIngredientKey(e, rowId) {
+    const box = document.getElementById(`sug-${rowId}`);
+    if (!box || !box.classList.contains("open")) return;
+
+    const items = box.querySelectorAll(".suggestion-item");
+    let activeIdx = [...items].findIndex(el => el.classList.contains("active"));
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      if (activeIdx < items.length - 1) {
+        items[activeIdx]?.classList.remove("active");
+        items[activeIdx + 1].classList.add("active");
+        items[activeIdx + 1].scrollIntoView({ block: "nearest" });
+      }
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      if (activeIdx > 0) {
+        items[activeIdx].classList.remove("active");
+        items[activeIdx - 1].classList.add("active");
+        items[activeIdx - 1].scrollIntoView({ block: "nearest" });
+      }
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      const active = box.querySelector(".suggestion-item.active");
+      if (active) {
+        selectIngredient(rowId, active.dataset.id, active.dataset.name);
+      }
+    } else if (e.key === "Escape") {
+      closeSuggestions(rowId);
+    }
+  }
+
+  function closeSuggestions(rowId) {
+    document.getElementById(`sug-${rowId}`)?.classList.remove("open");
+  }
+
+  const closeTimers = {};
+  function scheduleClose(rowId) {
+    closeTimers[rowId] = setTimeout(() => closeSuggestions(rowId), 200);
+  }
+
+  // ── Submit dish ────────────────────────────────────────────────────────────
+  async function submitDish() {
+    const name = document.getElementById("dish-name").value.trim();
+    const prep = parseFloat(document.getElementById("dish-prep").value) || 0;
+    const profit = parseFloat(document.getElementById("dish-profit").value) || 75;
+
+    if (!name) { showToast("⚠️ Please enter a dish name"); return; }
+
+    const rows = document.querySelectorAll(".ingredient-row");
+    const ingredients = [];
+
+    for (const row of rows) {
+      const ingId = row.querySelector('[name="ing-id"]').value;
+      const qty = parseFloat(row.querySelector('[name="ing-qty"]').value) || 1;
+      const price = parseFloat(row.querySelector('[name="ing-price"]').value) || 0;
+
+      if (!ingId) { showToast("⚠️ Select an ingredient from the suggestions"); return; }
+      ingredients.push({ id: parseInt(ingId), qty, price });
+    }
+
+    await fetch("/dishes", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, prep, profit, ingredients })
+    });
+
+    // Reset form
+    document.getElementById("dish-name").value = "";
+    document.getElementById("dish-prep").value = "";
+    document.getElementById("dish-profit").value = "";
+    document.getElementById("ingredient-rows").innerHTML = "";
+    rowCount = 0;
+
+    showToast(`✅ "${name}" saved!`);
+    loadDishes();
+  }
+
+  // ── Init ───────────────────────────────────────────────────────────────────
+  loadDishes();
+  loadIngredients();
+  addIngredientRow(); // start with one ingredient row
 </script>
 </body>
 </html>
