@@ -9,9 +9,14 @@
             padding: 20px;
         }
 
-        input, select {
-            margin: 5px;
+        input {
             padding: 5px;
+            margin: 5px;
+        }
+
+        button {
+            padding: 5px 10px;
+            margin: 5px;
         }
 
         .ingredient-row {
@@ -20,11 +25,12 @@
         }
 
         .suggestions {
-            background: white;
-            border: 1px solid #ccc;
             position: absolute;
             top: 30px;
+            left: 0;
             width: 200px;
+            background: white;
+            border: 1px solid #ccc;
             z-index: 1000;
         }
 
@@ -43,15 +49,16 @@
 
 <h1>Cloud Kitchen</h1>
 
-<!-- INGREDIENT -->
+<!-- ================= INGREDIENT ================= -->
 <h2>Add Ingredient</h2>
 <input id="ingredientName" placeholder="Ingredient Name">
 <button onclick="addIngredient()">Add</button>
 
 <hr>
 
-<!-- DISH -->
+<!-- ================= DISH ================= -->
 <h2>Add Dish</h2>
+
 <input id="name" placeholder="Dish Name">
 <input id="prep" type="number" placeholder="Preparation Cost">
 <input id="profit" type="number" placeholder="Profit Margin">
@@ -64,7 +71,7 @@
 
 <hr>
 
-<!-- MENU -->
+<!-- ================= MENU ================= -->
 <h2>Menu</h2>
 <ul id="menu"></ul>
 
@@ -76,9 +83,30 @@ async function loadIngredients() {
     try {
         const res = await fetch("/ingredients");
         ingredientsData = await res.json();
-    } catch (err) {
-        console.log("Error loading ingredients", err);
+    } catch (e) {
+        console.log("Ingredient load error", e);
     }
+}
+
+// ================= ADD INGREDIENT =================
+async function addIngredient() {
+    const name = document.getElementById("ingredientName").value;
+
+    if (!name) {
+        alert("Enter ingredient name");
+        return;
+    }
+
+    await fetch("/ingredients", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({name})
+    });
+
+    document.getElementById("ingredientName").value = "";
+    await loadIngredients();
+
+    alert("Ingredient Added");
 }
 
 // ================= ADD INGREDIENT FIELD =================
@@ -102,58 +130,37 @@ function addIngredientField() {
 
 // ================= AUTOCOMPLETE =================
 document.addEventListener("input", function(e) {
-    if (e.target.classList.contains("ing-search")) {
+    if (!e.target.classList.contains("ing-search")) return;
 
-        let input = e.target;
-        let value = input.value.toLowerCase();
-        let container = input.parentElement.querySelector(".suggestions");
+    let input = e.target;
+    let value = input.value.toLowerCase();
+    let box = input.parentElement.querySelector(".suggestions");
 
-        container.innerHTML = "";
+    box.innerHTML = "";
 
-        if (!value) return;
+    if (!value) return;
 
-        let matches = ingredientsData.filter(i =>
-            i.name.toLowerCase().includes(value)
-        );
+    let matches = ingredientsData.filter(i =>
+        i.name.toLowerCase().includes(value)
+    );
 
-        matches.forEach(m => {
-            let option = document.createElement("div");
-            option.innerText = m.name;
+    matches.forEach(m => {
+        let option = document.createElement("div");
+        option.innerText = m.name;
 
-            option.onclick = () => {
-                input.value = m.name;
-                input.parentElement.querySelector(".ing-id").value = m.id;
-                container.innerHTML = "";
-            };
+        option.onclick = () => {
+            input.value = m.name;
+            input.parentElement.querySelector(".ing-id").value = m.id;
+            box.innerHTML = "";
+        };
 
-            container.appendChild(option);
-        });
-    }
-});
-
-// ================= ADD INGREDIENT =================
-async function addIngredient() {
-    const name = document.getElementById("ingredientName").value;
-
-    if (!name) {
-        alert("Enter ingredient name");
-        return;
-    }
-
-    await fetch("/ingredients", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({name})
+        box.appendChild(option);
     });
-
-    document.getElementById("ingredientName").value = "";
-
-    await loadIngredients();
-    alert("Ingredient Added");
-}
+});
 
 // ================= SUBMIT DISH =================
 async function submitDish() {
+
     let ingredients = [];
 
     document.querySelectorAll(".ingredient-row").forEach(div => {
@@ -188,6 +195,7 @@ async function submitDish() {
 
     alert("Dish Added");
 
+    // Reset form
     document.getElementById("name").value = "";
     document.getElementById("prep").value = "";
     document.getElementById("profit").value = "";
@@ -215,8 +223,8 @@ async function loadMenu() {
 
         document.getElementById("menu").innerHTML = html;
 
-    } catch (err) {
-        console.log("Menu error", err);
+    } catch (e) {
+        console.log("Menu error", e);
     }
 }
 
