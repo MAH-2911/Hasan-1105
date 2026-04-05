@@ -2,65 +2,84 @@
 <html>
 <head>
     <title>Cloud Kitchen</title>
+
     <style>
         body {
             font-family: Arial;
             padding: 20px;
         }
+
         input, select {
             margin: 5px;
             padding: 5px;
         }
+
         .ingredient-row {
-            margin-bottom: 5px;
+            position: relative;
+            margin-bottom: 10px;
         }
-        button {
-            padding: 5px 10px;
-            margin-top: 5px;
+
+        .suggestions {
+            background: white;
+            border: 1px solid #ccc;
+            position: absolute;
+            top: 30px;
+            width: 200px;
+            z-index: 1000;
+        }
+
+        .suggestions div {
+            padding: 5px;
+            cursor: pointer;
+        }
+
+        .suggestions div:hover {
+            background: #eee;
         }
     </style>
 </head>
+
 <body>
 
-<h1>Cloud Kitchen Dashboard</h1>
+<h1>Cloud Kitchen</h1>
 
-<!-- ================= INGREDIENT SECTION ================= -->
+<!-- INGREDIENT -->
 <h2>Add Ingredient</h2>
 <input id="ingredientName" placeholder="Ingredient Name">
-<button onclick="addIngredient()">Add Ingredient</button>
+<button onclick="addIngredient()">Add</button>
 
 <hr>
 
-<!-- ================= DISH SECTION ================= -->
+<!-- DISH -->
 <h2>Add Dish</h2>
-
 <input id="name" placeholder="Dish Name">
 <input id="prep" type="number" placeholder="Preparation Cost">
 <input id="profit" type="number" placeholder="Profit Margin">
 
-<h3>Ingredients for this Dish</h3>
 <div id="ingredient-list"></div>
 
-<button onclick="addIngredientField()">+ Add Ingredient</button>
+<button onclick="addIngredientField()">Add Ingredient</button>
 <br><br>
 <button onclick="submitDish()">Add Dish</button>
 
 <hr>
 
-<!-- ================= MENU ================= -->
+<!-- MENU -->
 <h2>Menu</h2>
 <ul id="menu"></ul>
 
 <script>
 let ingredientsData = [];
 
-
 // ================= LOAD INGREDIENTS =================
 async function loadIngredients() {
-    const res = await fetch("/ingredients");
-    ingredientsData = await res.json();
+    try {
+        const res = await fetch("/ingredients");
+        ingredientsData = await res.json();
+    } catch (err) {
+        console.log("Error loading ingredients", err);
+    }
 }
-
 
 // ================= ADD INGREDIENT FIELD =================
 function addIngredientField() {
@@ -68,17 +87,49 @@ function addIngredientField() {
     div.className = "ingredient-row";
 
     div.innerHTML = `
-        <select class="ing-id">
-            ${ingredientsData.map(i => `<option value="${i.id}">${i.name}</option>`).join("")}
-        </select>
+        <input type="text" class="ing-search" placeholder="Type ingredient">
+        <div class="suggestions"></div>
+        <input type="hidden" class="ing-id">
+
         <input type="number" class="qty" placeholder="Qty">
         <input type="number" class="price" placeholder="Price">
-        <button onclick="this.parentElement.remove()">❌</button>
+
+        <button onclick="this.parentElement.remove()">X</button>
     `;
 
     document.getElementById("ingredient-list").appendChild(div);
 }
 
+// ================= AUTOCOMPLETE =================
+document.addEventListener("input", function(e) {
+    if (e.target.classList.contains("ing-search")) {
+
+        let input = e.target;
+        let value = input.value.toLowerCase();
+        let container = input.parentElement.querySelector(".suggestions");
+
+        container.innerHTML = "";
+
+        if (!value) return;
+
+        let matches = ingredientsData.filter(i =>
+            i.name.toLowerCase().includes(value)
+        );
+
+        matches.forEach(m => {
+            let option = document.createElement("div");
+            option.innerText = m.name;
+
+            option.onclick = () => {
+                input.value = m.name;
+                input.parentElement.querySelector(".ing-id").value = m.id;
+                container.innerHTML = "";
+            };
+
+            container.appendChild(option);
+        });
+    }
+});
 
 // ================= ADD INGREDIENT =================
 async function addIngredient() {
@@ -98,25 +149,26 @@ async function addIngredient() {
     document.getElementById("ingredientName").value = "";
 
     await loadIngredients();
-    alert("Ingredient Added!");
+    alert("Ingredient Added");
 }
-
 
 // ================= SUBMIT DISH =================
 async function submitDish() {
     let ingredients = [];
 
-    document.querySelectorAll("#ingredient-list .ingredient-row").forEach(div => {
-        ingredients.push({
-            id: div.querySelector(".ing-id").value,
-            qty: div.querySelector(".qty").value || 1,
-            price: div.querySelector(".price").value || 0
-        });
+    document.querySelectorAll(".ingredient-row").forEach(div => {
+        let id = div.querySelector(".ing-id").value;
+
+        if (id) {
+            ingredients.push({
+                id: id,
+                qty: div.querySelector(".qty").value || 1,
+                price: div.querySelector(".price").value || 0
+            });
+        }
     });
 
     const name = document.getElementById("name").value;
-    const prep = document.getElementById("prep").value;
-    const profit = document.getElementById("profit").value;
 
     if (!name) {
         alert("Enter dish name");
@@ -128,15 +180,14 @@ async function submitDish() {
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({
             name: name,
-            prep: prep || 0,
-            profit: profit || 75,
+            prep: document.getElementById("prep").value || 0,
+            profit: document.getElementById("profit").value || 75,
             ingredients: ingredients
         })
     });
 
-    alert("Dish Added!");
+    alert("Dish Added");
 
-    // Clear fields
     document.getElementById("name").value = "";
     document.getElementById("prep").value = "";
     document.getElementById("profit").value = "";
@@ -145,35 +196,35 @@ async function submitDish() {
     loadMenu();
 }
 
-
 // ================= LOAD MENU =================
 async function loadMenu() {
-    const res = await fetch("/dishes");
-    const data = await res.json();
+    try {
+        const res = await fetch("/dishes");
+        const data = await res.json();
 
-    let html = "";
+        let html = "";
 
-    data.forEach(d => {
-        html += `
-        <li>
-            <b>${d.name}</b>  
-            | Cost: ₹${d.ingredient_cost}  
-            | Prep: ₹${d.preparation_expense}  
-            | Selling: ₹${d.selling_price}
-            <button onclick="deleteDish(${d.id})">Delete</button>
-        </li>`;
-    });
+        data.forEach(d => {
+            html += `
+                <li>
+                    ${d.name} - ₹${d.selling_price}
+                    <button onclick="deleteDish(${d.id})">Delete</button>
+                </li>
+            `;
+        });
 
-    document.getElementById("menu").innerHTML = html;
+        document.getElementById("menu").innerHTML = html;
+
+    } catch (err) {
+        console.log("Menu error", err);
+    }
 }
 
-
-// ================= DELETE DISH =================
+// ================= DELETE =================
 async function deleteDish(id) {
     await fetch("/dishes/" + id, {method: "DELETE"});
     loadMenu();
 }
-
 
 // ================= INIT =================
 async function init() {
