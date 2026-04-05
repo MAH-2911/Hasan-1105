@@ -7,45 +7,20 @@
         body {
             font-family: Arial;
             padding: 20px;
-            background: #f4f4f4;
-        }
-
-        h1 {
-            color: #333;
         }
 
         input {
-            padding: 8px;
+            padding: 5px;
             margin: 5px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
         }
 
         button {
-            padding: 8px 12px;
+            padding: 5px 10px;
             margin: 5px;
-            border: none;
-            background: #007bff;
-            color: white;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background: #0056b3;
-        }
-
-        .card {
-            background: white;
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
 
         .ingredient-row {
             position: relative;
-            margin-bottom: 10px;
         }
 
         .suggestions {
@@ -53,7 +28,7 @@
             background: white;
             border: 1px solid #ccc;
             width: 200px;
-            top: 35px;
+            top: 25px;
             z-index: 1000;
         }
 
@@ -70,33 +45,33 @@
 
 <body>
 
-<h1>🍽️ Cloud Kitchen Dashboard</h1>
+<h1>Cloud Kitchen</h1>
 
-<div class="card">
-    <h2>Add Ingredient</h2>
-    <input id="ingredientName" placeholder="Ingredient Name">
-    <button onclick="addIngredient()">Add</button>
-</div>
+<!-- ADD INGREDIENT -->
+<h2>Add Ingredient</h2>
+<input id="ingredientName" placeholder="Ingredient Name">
+<button onclick="addIngredient()">Add</button>
 
-<div class="card">
-    <h2>Add Dish</h2>
+<hr>
 
-    <input id="name" placeholder="Dish Name">
-    <input id="prep" type="number" placeholder="Preparation Cost">
-    <input id="profit" type="number" placeholder="Profit Margin">
+<!-- ADD DISH -->
+<h2>Add Dish</h2>
+<input id="name" placeholder="Dish Name">
+<input id="prep" type="number" placeholder="Preparation Cost">
+<input id="profit" type="number" placeholder="Profit Margin">
 
-    <h3>Ingredients</h3>
-    <div id="ingredient-list"></div>
+<h3>Ingredients</h3>
+<div id="ingredient-list"></div>
 
-    <button onclick="addIngredientField()">+ Add Ingredient</button>
-    <br><br>
-    <button onclick="submitDish()">Add Dish</button>
-</div>
+<button onclick="addIngredientField()">Add Ingredient</button>
+<br><br>
+<button onclick="submitDish()">Add Dish</button>
 
-<div class="card">
-    <h2>Menu</h2>
-    <ul id="menu"></ul>
-</div>
+<hr>
+
+<!-- MENU -->
+<h2>Menu</h2>
+<ul id="menu"></ul>
 
 <script>
 let ingredientsData = [];
@@ -142,7 +117,7 @@ function addIngredientField() {
     document.getElementById("ingredient-list").appendChild(div);
 }
 
-// AUTOCOMPLETE
+// AUTOCOMPLETE (SAFE)
 document.addEventListener("input", function(e) {
     if (!e.target.classList.contains("ing-search")) return;
 
@@ -174,7 +149,6 @@ document.addEventListener("input", function(e) {
 
 // ADD DISH
 async function submitDish() {
-
     let ingredients = [];
 
     document.querySelectorAll(".ingredient-row").forEach(div => {
@@ -224,7 +198,7 @@ async function loadMenu() {
     data.forEach(d => {
         html += `
             <li>
-                <b>${d.name}</b> - ₹${d.selling_price}
+                ${d.name} - ₹${d.selling_price}
                 <button onclick="deleteDish(${d.id})">Delete</button>
             </li>
         `;
