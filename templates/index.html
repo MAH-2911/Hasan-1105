@@ -1,6 +1,68 @@
 <!DOCTYPE html>
 <html>
+<head>
+    <title>Cloud Kitchen</title>
+</head>
 <body>
-<h1>WORKING ✅</h1>
+
+<h1>Cloud Kitchen</h1>
+
+<h2>Add Ingredient</h2>
+<input id="ingredientName">
+<button onclick="addIngredient()">Add</button>
+
+<h2>Add Dish</h2>
+<input id="name" placeholder="Dish Name">
+<button onclick="addDish()">Add Dish</button>
+
+<h2>Menu</h2>
+<ul id="menu"></ul>
+
+<script>
+async function addIngredient() {
+    const name = document.getElementById("ingredientName").value;
+
+    await fetch("/ingredients", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({name})
+    });
+
+    alert("Ingredient added");
+}
+
+async function addDish() {
+    const name = document.getElementById("name").value;
+
+    await fetch("/dishes", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            name: name,
+            prep: 0,
+            profit: 75,
+            ingredients: []
+        })
+    });
+
+    loadMenu();
+}
+
+async function loadMenu() {
+    const res = await fetch("/dishes");
+    const data = await res.json();
+
+    let html = "";
+
+    data.forEach(d => {
+        html += `<li>${d.name}</li>`;
+    });
+
+    document.getElementById("menu").innerHTML = html;
+}
+
+loadMenu();
+</script>
+
 </body>
 </html>

@@ -4,23 +4,20 @@ import os
 
 app = Flask(__name__)
 
-# Initialize DB only once
+# Initialize DB
 if not os.path.exists("kitchen.db"):
     init_db()
 
-# ================= HOME =================
 @app.route("/")
 def index():
     return render_template("index.html")
 
-# ================= GET DISHES =================
 @app.route("/dishes", methods=["GET"])
 def get_dishes():
     conn = get_db()
     data = conn.execute("SELECT * FROM dish_summary").fetchall()
     return jsonify([dict(row) for row in data])
 
-# ================= ADD DISH =================
 @app.route("/dishes", methods=["POST"])
 def add_dish():
     data = request.json
@@ -44,7 +41,6 @@ def add_dish():
     conn.commit()
     return jsonify({"message": "Dish added"})
 
-# ================= DELETE DISH =================
 @app.route("/dishes/<int:id>", methods=["DELETE"])
 def delete_dish(id):
     conn = get_db()
@@ -52,7 +48,6 @@ def delete_dish(id):
     conn.commit()
     return jsonify({"message": "Deleted"})
 
-# ================= INGREDIENTS =================
 @app.route("/ingredients", methods=["GET"])
 def get_ingredients():
     conn = get_db()
@@ -67,7 +62,6 @@ def add_ingredient():
     conn.commit()
     return jsonify({"message": "Ingredient added"})
 
-# ================= RUN =================
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
