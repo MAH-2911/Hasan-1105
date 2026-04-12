@@ -40,8 +40,8 @@ def add_dish():
         conn.commit()
         return jsonify({"message": "Dish added"})
     except Exception as e:
-        conn.rollback()
-        return jsonify({"error": "Failed to add dish"}), 500
+    conn.rollback()
+    return jsonify({"error": str(e)}), 500
     finally:
         conn.close()
 
