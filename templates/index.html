@@ -2,740 +2,724 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Nish's Kitchen — Menu Manager</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Crimson+Pro:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Nish's Kitchen</title>
 <style>
-:root {
-  --cream: #f7f2e8;
-  --cream2: #ede6d6;
-  --paper: #faf7f0;
-  --espresso: #1c1410;
-  --brown: #3d2b1f;
-  --olive: #5a6b3a;
-  --rust: #b85c2a;
-  --gold: #c49a3c;
-  --muted: #8a7968;
-  --border: #d4c9b0;
-  --border2: #c4b89a;
-  --shadow: rgba(28,20,16,0.12);
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#2E7D32;--green-l:#E8F5E9;--green-m:#66BB6A;
+  --blue:#1565C0;--blue-l:#E3F2FD;
+  --orange:#E65100;--orange-l:#FFF3E0;
+  --amber:#F9A825;--amber-l:#FFF8E1;
+  --red:#C62828;--red-l:#FFEBEE;
+  --bg:#F9FBF9;--white:#fff;--border:#EFEFEF;
+  --text:#1A1A1A;--muted:#757575;
+  --r:14px;--shadow:0 1px 6px rgba(0,0,0,.07);
 }
+html{font-size:15px}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+button{cursor:pointer;font-family:inherit;border:none}
+input,select{font-family:inherit}
 
-* { margin:0; padding:0; box-sizing:border-box; }
-
-body {
-  background: var(--cream);
-  color: var(--espresso);
-  font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 16px;
-  min-height: 100vh;
-  background-image:
-    radial-gradient(ellipse at 20% 0%, rgba(196,154,60,0.08) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 100%, rgba(90,107,58,0.06) 0%, transparent 50%);
+/* Layout */
+.app{display:flex;min-height:100vh}
+.sidebar{
+  width:210px;background:var(--white);border-right:1px solid var(--border);
+  position:fixed;top:0;left:0;bottom:0;display:flex;flex-direction:column;z-index:50
 }
-
-body::before {
-  content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
-  opacity:0.025;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+.logo{padding:22px 18px 14px;border-bottom:1px solid var(--border)}
+.logo h1{font-size:1rem;font-weight:800;color:var(--green)}
+.logo p{font-size:.72rem;color:var(--muted);margin-top:2px}
+.nav{padding:10px 8px;flex:1}
+.nav-btn{
+  display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;
+  border-radius:10px;font-size:.875rem;font-weight:500;color:var(--muted);
+  background:none;transition:.15s;margin-bottom:2px;text-align:left
 }
+.nav-btn:hover{background:var(--green-l);color:var(--green)}
+.nav-btn.on{background:var(--green-l);color:var(--green);font-weight:700}
+.main{margin-left:210px;padding:28px 32px;max-width:860px;width:100%}
 
-/* ── HEADER ── */
-header {
-  position: relative; z-index:1;
-  padding: 0 24px;
-  border-bottom: 1px solid var(--border2);
-  background: var(--paper);
-  box-shadow: 0 1px 0 var(--border), 0 4px 24px var(--shadow);
-  display: flex; align-items: center; justify-content: space-between;
-  flex-wrap: wrap; gap: 12px;
-}
-.header-left { padding: 16px 0; }
-.brand-rule { display: flex; align-items: center; gap: 14px; margin-bottom: 4px; }
-.brand-rule::before, .brand-rule::after { content:''; flex:1; height:1px; background: var(--border2); max-width: 40px; }
-.brand-icon { color: var(--gold); font-size: 1rem; letter-spacing: 4px; }
-.brand-name { font-family: 'Playfair Display', serif; font-size: 2.1rem; font-weight: 900; letter-spacing: -0.5px; color: var(--espresso); line-height: 1; }
-.brand-name em { color: var(--rust); font-style: italic; }
-.brand-sub { font-size: 0.7rem; letter-spacing: 4px; text-transform: uppercase; color: var(--muted); margin-top: 5px; text-align: center; }
-.add-btn {
-  background: var(--espresso); color: var(--cream);
-  border: none; padding: 10px 18px;
-  font-family: 'Playfair Display', serif; font-size: 0.85rem; font-style: italic;
-  border-radius: 2px; cursor: pointer;
-  transition: all 0.25s; letter-spacing: 0.3px;
-  box-shadow: 3px 3px 0 var(--brown);
-  white-space: nowrap;
-}
-.add-btn:hover { background: var(--rust); transform: translate(-1px,-1px); box-shadow: 4px 4px 0 var(--brown); }
+/* Screens */
+.scr{display:none}.scr.on{display:block}
 
-/* ── STATS ── */
-.stats-row {
-  position: relative; z-index:1;
-  display: grid; grid-template-columns: repeat(2, 1fr);
-  border-bottom: 1px solid var(--border);
-  background: var(--paper);
-}
-.stat-card {
-  padding: 22px 32px; border-right: 1px solid var(--border);
-  position: relative; overflow: hidden;
-  animation: fadeSlideUp 0.5s ease both;
-}
-.stat-card:nth-child(1){animation-delay:0.05s}
-.stat-card:nth-child(2){animation-delay:0.1s}
-.stat-card:nth-child(3){animation-delay:0.15s}
-.stat-card:nth-child(4){animation-delay:0.2s; border-right:none}
+/* Page header */
+.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px}
+.ph h2{font-size:1.45rem;font-weight:800;letter-spacing:-.4px}
+.ph p{font-size:.78rem;color:var(--muted);margin-top:2px}
 
-@keyframes fadeSlideUp {
-  from { opacity:0; transform:translateY(12px); }
-  to   { opacity:1; transform:translateY(0); }
-}
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:10px;font-size:.875rem;font-weight:600;transition:.15s}
+.btn-primary{background:var(--green);color:#fff}.btn-primary:hover{background:#1B5E20}
+.btn-ghost{background:var(--green-l);color:var(--green)}.btn-ghost:hover{background:#C8E6C9}
+.btn-sm{padding:6px 14px;font-size:.8rem;border-radius:8px}
+.btn-full{width:100%;justify-content:center;padding:13px;font-size:.95rem}
+.btn:disabled{opacity:.5;cursor:not-allowed}
 
-.stat-card::after {
-  content:''; position:absolute; bottom:0; left:32px; right:32px;
-  height:2px; background: linear-gradient(90deg, var(--gold), transparent);
-  opacity:0; transition:opacity 0.3s;
-}
-.stat-card:hover::after { opacity:1; }
-.stat-label { font-size: 0.62rem; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
-.stat-value { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700; line-height: 1; color: var(--espresso); }
-.stat-value.gold { color: var(--gold); }
-.stat-value.olive { color: var(--olive); }
-.stat-value.rust { color: var(--rust); }
-.stat-note { font-size: 0.72rem; color: var(--muted); margin-top: 4px; font-style: italic; }
+/* Search */
+.srch{position:relative;margin-bottom:14px}
+.srch svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
+.srch input{width:100%;padding:10px 12px 10px 36px;border:1px solid var(--border);border-radius:10px;background:var(--white);font-size:.875rem;outline:none;transition:.15s}
+.srch input:focus{border-color:var(--green)}
 
-/* ── MAIN ── */
-main { position:relative; z-index:1; padding: 24px 16px; }
-.section-header { display: flex; align-items: baseline; gap: 16px; margin-bottom: 28px; }
-.section-title { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; font-style: italic; color: var(--espresso); }
-.section-rule { flex:1; height:1px; background: var(--border); }
-.section-count { font-size: 0.7rem; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); }
+/* Dish card */
+.dc{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px;box-shadow:var(--shadow);transition:.15s}
+.dc:hover{box-shadow:0 4px 16px rgba(0,0,0,.1)}
+.dc-head{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.dc-icon{width:40px;height:40px;border-radius:10px;background:var(--green-l);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.dc-name{font-weight:700;font-size:.95rem;flex:1}
+.chips{display:flex;gap:8px;background:var(--bg);border-radius:10px;padding:10px 14px}
+.chip{flex:1;text-align:center}
+.chip-lbl{font-size:.68rem;color:var(--muted);font-weight:500;margin-bottom:4px}
+.chip-val{font-size:.8rem;font-weight:700;padding:3px 9px;border-radius:7px;display:inline-block}
+.c-or{background:var(--orange-l);color:var(--orange)}
+.c-gr{background:var(--green-l);color:var(--green)}
+.c-bl{background:var(--blue-l);color:var(--blue)}
 
-/* ── CARDS ── */
-.dishes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-.dish-card {
-  background: var(--paper); border: 1px solid var(--border);
-  border-radius: 3px; overflow: hidden;
-  box-shadow: 2px 3px 12px var(--shadow); transition: all 0.25s;
-  animation: fadeSlideUp 0.4s ease both;
-}
-.dish-card:hover { transform: translateY(-3px); box-shadow: 4px 8px 28px rgba(28,20,16,0.18); border-color: var(--border2); }
-.card-top { padding: 20px 22px 16px; border-bottom: 1px solid var(--border); position: relative; }
-.card-number { font-size: 0.6rem; letter-spacing: 3px; color: var(--muted); text-transform: uppercase; margin-bottom: 4px; }
-.card-name { font-family: 'Playfair Display', serif; font-size: 1.25rem; font-weight: 700; color: var(--espresso); line-height: 1.2; }
-.card-actions { position: absolute; top: 16px; right: 16px; display: flex; gap: 6px; opacity: 0; transition: opacity 0.2s; }
-.dish-card:hover .card-actions { opacity: 1; }
-.card-btn { width: 30px; height: 30px; border-radius: 2px; border: 1px solid var(--border); background: var(--cream); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; color: var(--muted); transition: all 0.15s; }
-.card-btn:hover.del { background:var(--rust); color:#fff; border-color:var(--rust); }
-.card-costs { padding: 16px 22px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; border-bottom: 1px solid var(--border); }
-.cost-item { display: flex; flex-direction: column; gap: 3px; }
-.cost-label { font-size: 0.6rem; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); }
-.cost-value { font-size: 1rem; font-weight: 500; color: var(--brown); }
-.card-bottom { padding: 14px 22px; display: flex; align-items: center; justify-content: space-between; background: linear-gradient(135deg, var(--espresso) 0%, #2e1f14 100%); }
-.cb-left { display: flex; flex-direction: column; gap: 2px; }
-.cb-label { font-size: 0.58rem; letter-spacing: 2px; text-transform: uppercase; color: rgba(250,247,240,0.45); }
-.cb-cogs { font-size: 0.85rem; color: rgba(250,247,240,0.65); }
-.selling-price { font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: 900; color: var(--gold); letter-spacing: -0.5px; }
-.profit-badge { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
-.profit-label { font-size: 0.58rem; letter-spacing: 2px; text-transform: uppercase; color: rgba(250,247,240,0.45); }
-.profit-val { font-size: 0.95rem; font-weight: 500; color: #7ec99a; }
+/* Ingredient row */
+.ir{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:13px 15px;display:flex;align-items:center;gap:12px;margin-bottom:10px;box-shadow:var(--shadow)}
+.ir-av{width:42px;height:42px;border-radius:12px;background:var(--green-l);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1rem;color:var(--green)}
+.ir-info{flex:1}.ir-name{font-weight:700;font-size:.9rem}.ir-price{font-size:.7rem;color:var(--muted);margin-top:2px}
+.ir-acts{display:flex;gap:4px}
+.ib{width:32px;height:32px;border-radius:8px;background:none;display:flex;align-items:center;justify-content:center;transition:.15s}
+.ib:hover{background:var(--bg)}
 
-/* ── EMPTY ── */
-.empty-state { text-align: center; padding: 100px 20px; color: var(--muted); }
-.empty-ornament { font-family: 'Playfair Display', serif; font-size: 4rem; opacity: 0.15; color: var(--espresso); margin-bottom: 20px; font-style: italic; }
-.empty-title { font-family: 'Playfair Display', serif; font-size: 1.3rem; font-style: italic; color: var(--brown); margin-bottom: 8px; }
-.empty-sub { font-size: 0.85rem; color: var(--muted); }
+/* Stat card */
+.card-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.sc{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:18px;box-shadow:var(--shadow)}
+.sc-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+.sc-val{font-size:1.45rem;font-weight:800;letter-spacing:-.5px}
+.sc-lbl{font-size:.73rem;color:var(--muted);margin-top:2px}
+.sc-sub{font-size:.7rem;color:var(--muted)}
 
-/* ── MODAL ── */
-.overlay { position: fixed; inset: 0; background: rgba(28,20,16,0.65); backdrop-filter: blur(3px); z-index: 200; display: none; align-items: center; justify-content: center; padding: 20px; }
-.overlay.open { display: flex; }
-.modal { background: var(--paper); border: 1px solid var(--border2); border-radius: 3px; width: 100%; max-width: 560px; max-height: 92vh; overflow-y: auto; box-shadow: 8px 12px 48px rgba(28,20,16,0.4); animation: modalIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
-@keyframes modalIn { from { opacity:0; transform: scale(0.94) translateY(20px); } to { opacity:1; transform: scale(1) translateY(0); } }
-.modal-header { padding: 28px 32px 22px; border-bottom: 1px solid var(--border); text-align: center; position: relative; }
-.modal-ornament { font-size: 0.65rem; letter-spacing: 5px; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
-.modal-title { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; font-style: italic; }
-.close-btn { position: absolute; top: 24px; right: 24px; background: none; border: 1px solid var(--border); color: var(--muted); width: 32px; height: 32px; border-radius: 2px; cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
-.close-btn:hover { background: var(--espresso); color: var(--cream); border-color: var(--espresso); }
-.modal-body { padding: 28px 32px; display: flex; flex-direction: column; gap: 22px; }
-.field { display: flex; flex-direction: column; gap: 7px; }
-.field label { font-size: 0.62rem; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); }
-.field input { background: var(--cream); border: 1px solid var(--border); color: var(--espresso); padding: 11px 15px; font-family: 'Crimson Pro', serif; font-size: 1rem; border-radius: 2px; outline: none; transition: border-color 0.2s; }
-.field input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(196,154,60,0.1); }
-.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.ing-section-label { font-size: 0.62rem; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
-.ing-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+/* Tip card */
+.tc{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:13px 15px;display:flex;align-items:flex-start;gap:12px;margin-bottom:10px}
+.tc-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tc-title{font-weight:700;font-size:.875rem}
+.tc-body{font-size:.78rem;color:var(--muted);margin-top:2px}
 
-/* ── INGREDIENT ROW ── */
-.ing-row { display: grid; grid-template-columns: 1fr 130px 34px; gap: 8px; align-items: start; }
-.ing-row input {
-  background: var(--cream); border: 1px solid var(--border);
-  color: var(--espresso); padding: 9px 12px;
-  font-family: 'Crimson Pro', serif; font-size: 0.95rem;
-  border-radius: 2px; outline: none; transition: border-color 0.2s; width: 100%;
-}
-.ing-row input:focus { border-color: var(--gold); }
-.rm-ing { background: none; border: 1px solid var(--border); color: var(--rust); width:34px; height:36px; border-radius:2px; cursor:pointer; font-size:1.1rem; transition:all 0.15s; }
-.rm-ing:hover { background:var(--rust); color:#fff; border-color:var(--rust); }
-.add-ing-btn { background: none; border: 1px dashed var(--border2); color: var(--muted); padding: 9px; border-radius: 2px; cursor: pointer; font-family: 'Crimson Pro', serif; font-size: 0.85rem; font-style: italic; width: 100%; transition: all 0.2s; letter-spacing: 0.3px; }
-.add-ing-btn:hover { border-color: var(--olive); color: var(--olive); background: rgba(90,107,58,0.04); }
+/* Overlay / Modal */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.38);display:none;align-items:center;justify-content:center;z-index:200;padding:20px}
+.ov.on{display:flex}
+.modal{background:var(--white);border-radius:20px;width:100%;max-width:510px;max-height:90vh;overflow-y:auto;padding:26px;box-shadow:0 20px 60px rgba(0,0,0,.18)}
+.mh{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.mtitle{font-size:1.05rem;font-weight:800}
+.mclose{width:30px;height:30px;border-radius:8px;background:var(--bg);font-size:1rem;display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.mclose:hover{background:#eee}
 
-/* ── AUTOCOMPLETE ── */
-.ing-name-wrap { position: relative; }
+/* Form */
+.fg{margin-bottom:13px}
+.fl{font-size:.78rem;font-weight:600;margin-bottom:4px;display:block}
+.fi{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;font-size:.875rem;outline:none;background:var(--white);transition:.15s}
+.fi:focus{border-color:var(--green)}
+.frow{display:flex;gap:10px}
+.frow .fg{flex:1}
+.fhint{font-size:.7rem;color:var(--muted);margin-top:4px}
+.fhint.ok{color:var(--green)}
 
-.suggestions-box {
-  position: absolute; top: calc(100% + 2px); left: 0; right: 0;
-  background: var(--paper);
-  border: 1px solid var(--border2);
-  border-radius: 2px;
-  box-shadow: 4px 6px 24px var(--shadow);
-  z-index: 500; max-height: 210px; overflow-y: auto;
-  display: none;
-}
-.suggestions-box.open { display: block; }
+/* Autocomplete */
+.ac{position:relative}
+.ac-list{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--white);border:1px solid var(--border);border-radius:10px;z-index:400;max-height:190px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.1);display:none}
+.ac-list.on{display:block}
+.ac-item{display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;transition:.1s}
+.ac-item:hover{background:var(--green-l)}
+.ac-av{width:28px;height:28px;border-radius:7px;background:var(--green-l);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ac-name{font-size:.875rem;font-weight:600}
+.ac-pr{font-size:.7rem;color:var(--muted)}
 
-.sug-item {
-  padding: 9px 14px;
-  font-family: 'Crimson Pro', serif; font-size: 0.95rem;
-  cursor: pointer; color: var(--brown);
-  border-bottom: 1px solid var(--border);
-  transition: background 0.15s;
-  display: flex; align-items: center; gap: 8px;
-}
-.sug-item:last-child { border-bottom: none; }
-.sug-item:hover, .sug-item.active { background: rgba(196,154,60,0.1); color: var(--espresso); }
-.sug-item strong { color: var(--espresso); }
+/* Dish ingredient list inside modal */
+.dil-item{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--bg);border-radius:10px;margin-bottom:8px}
+.dil-av{width:30px;height:30px;border-radius:8px;background:var(--green-l);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;color:var(--green);flex-shrink:0}
+.dil-name{flex:1;font-weight:600;font-size:.875rem}
+.dil-qty{font-size:.78rem;color:var(--muted)}
+.dil-cost{font-weight:700;font-size:.875rem;color:var(--green)}
 
-.sug-new {
-  padding: 9px 14px; font-family: 'Crimson Pro', serif;
-  font-size: 0.88rem; font-style: italic; cursor: pointer;
-  color: var(--olive); border-top: 1px solid var(--border);
-  transition: background 0.15s;
-}
-.sug-new:hover { background: rgba(90,107,58,0.06); }
+/* Summary */
+.sumbox{background:var(--bg);border-radius:12px;padding:14px 16px;margin-top:10px}
+.sumrow{display:flex;justify-content:space-between;font-size:.875rem;padding:3px 0}
+.sumrow.b{font-weight:700}.sumrow.lg{font-size:1rem}
+hr.sd{border:none;border-top:1px solid var(--border);margin:8px 0}
 
-.sug-empty { padding: 9px 14px; font-family: 'Crimson Pro', serif; font-size: 0.88rem; font-style: italic; color: var(--muted); }
+/* Detail box (inside dish detail modal) */
+.detail-ing{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--white);border:1px solid var(--border);border-radius:12px;margin-bottom:8px}
+.detail-av{width:36px;height:36px;border-radius:9px;background:var(--green-l);display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:800;color:var(--green);flex-shrink:0}
 
-/* ── PREVIEW ── */
-.cogs-preview { background: var(--espresso); border-radius: 3px; padding: 18px 22px; display: grid; grid-template-columns: 1fr 1px 1fr 1px 1fr; gap: 0; align-items: center; }
-.divider-v { width:1px; background: rgba(250,247,240,0.12); height:40px; justify-self:center; }
-.cp-item { text-align: center; padding: 0 12px; }
-.cp-label { font-size: 0.58rem; letter-spacing: 3px; text-transform: uppercase; color: rgba(250,247,240,0.4); margin-bottom: 6px; }
-.cp-val { font-family: 'Playfair Display', serif; font-size: 1.2rem; font-weight: 700; color: rgba(250,247,240,0.8); }
-.cp-val.gold { color: var(--gold); font-size: 1.4rem; }
-.cp-val.green { color: #7ec99a; }
+/* Toast */
+#toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:10px 22px;border-radius:10px;font-size:.875rem;font-weight:500;opacity:0;transition:opacity .2s;pointer-events:none;z-index:999;white-space:nowrap}
+#toast.on{opacity:1}
+#toast.err{background:var(--red)}
 
-.modal-footer { padding: 20px 32px 28px; display: flex; gap: 12px; justify-content: flex-end; border-top: 1px solid var(--border); }
-.btn-cancel { background: none; border: 1px solid var(--border); color: var(--muted); padding: 11px 22px; border-radius: 2px; cursor: pointer; font-family: 'Crimson Pro', serif; font-size: 0.95rem; transition: all 0.15s; }
-.btn-cancel:hover { border-color: var(--brown); color: var(--brown); }
-.btn-save { background: var(--espresso); color: var(--cream); border: none; padding: 11px 28px; border-radius: 2px; cursor: pointer; font-family: 'Playfair Display', serif; font-size: 0.95rem; font-style: italic; box-shadow: 2px 2px 0 var(--brown); transition: all 0.2s; }
-.btn-save:hover { background: var(--rust); transform:translate(-1px,-1px); box-shadow:3px 3px 0 var(--brown); }
+/* Empty */
+.empty{text-align:center;padding:56px 20px;color:var(--muted)}
+.empty-icon{width:68px;height:68px;border-radius:18px;background:var(--green-l);margin:0 auto 14px;display:flex;align-items:center;justify-content:center}
+.empty h3{font-size:.95rem;font-weight:700;color:var(--text);margin-bottom:4px}
+.empty p{font-size:.83rem}
 
-/* ── TOAST ── */
-.toast { position: fixed; bottom: 28px; right: 28px; background: var(--espresso); color: var(--cream); border-left: 3px solid var(--olive); padding: 13px 22px; border-radius: 2px; font-size: 0.85rem; font-style: italic; transform: translateY(60px); opacity: 0; transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1); z-index: 300; box-shadow: 3px 3px 0 var(--brown); }
-.toast.show { transform: translateY(0); opacity: 1; }
-.toast.err { border-left-color: var(--rust); }
+/* Spinner */
+.spin{width:30px;height:30px;border:3px solid var(--green-l);border-top-color:var(--green);border-radius:50%;animation:sp .7s linear infinite;margin:52px auto}
+@keyframes sp{to{transform:rotate(360deg)}}
 
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--cream); }
-::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
-
-/* ── MOBILE ── */
-@media (max-width: 480px) {
-  .brand-name { font-size: 1.6rem; }
-  .stat-card { padding: 16px 18px; }
-  .stat-value { font-size: 1.5rem; }
-  .modal-body { padding: 20px 18px; }
-  .modal-header { padding: 20px 18px; }
-  .modal-footer { padding: 16px 18px; }
-  .row2 { grid-template-columns: 1fr; }
-  .ing-row { grid-template-columns: 1fr 100px 34px; }
+/* Responsive */
+@media(max-width:680px){
+  .sidebar{width:54px}
+  .logo,.nav-btn span{display:none}
+  .nav-btn{justify-content:center}
+  .main{margin-left:54px;padding:16px 12px}
+  .card-grid{grid-template-columns:1fr}
+  .frow{flex-direction:column}
 }
 </style>
 </head>
 <body>
+<div class="app">
 
-<header>
-  <div class="header-center">
-    <div class="brand-rule"><span class="brand-icon">✦ ✦ ✦</span></div>
-    <div class="brand-name">Nish's<em>Kitchen</em></div>
-    <div class="brand-sub">Menu &amp; Cost Manager</div>
+<!-- Sidebar -->
+<nav class="sidebar">
+  <div class="logo">
+    <h1>🍳 Nish's Kitchen</h1>
+    <p>Cloud Kitchen Manager</p>
   </div>
-  <button class="add-btn" onclick="openModal()">＋ Add New Dish</button>
-</header>
+  <div class="nav">
+    <button class="nav-btn on" onclick="nav('dishes',this)">
+      <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>
+      <span>Dishes</span>
+    </button>
+    <button class="nav-btn" onclick="nav('ingredients',this)">
+      <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+      <span>Ingredients</span>
+    </button>
+    <button class="nav-btn" onclick="nav('stats',this)">
+      <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="18" y="3" width="4" height="18"/><rect x="10" y="8" width="4" height="13"/><rect x="2" y="13" width="4" height="8"/></svg>
+      <span>Stats</span>
+    </button>
+  </div>
+</nav>
 
-<div class="stats-row">
-  <div class="stat-card">
-    <div class="stat-label">Dishes on Menu</div>
-    <div class="stat-value rust" id="s-total">0</div>
-    <div class="stat-note">active items</div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-label">Average COGS</div>
-    <div class="stat-value" id="s-cogs">₹0</div>
-    <div class="stat-note">per dish</div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-label">Avg Selling Price</div>
-    <div class="stat-value gold" id="s-price">₹0</div>
-    <div class="stat-note">per dish</div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-label">Avg Profit</div>
-    <div class="stat-value olive" id="s-profit">₹0</div>
-    <div class="stat-note">per dish</div>
-  </div>
-</div>
+<!-- Main -->
+<main class="main">
 
-<main>
-  <div class="section-header">
-    <span class="section-title">The Menu</span>
-    <span class="section-rule"></span>
-    <span class="section-count" id="dish-count">0 dishes</span>
-  </div>
-  <div class="dishes-grid" id="dishes-grid"></div>
-  <div class="empty-state" id="empty" style="display:none">
-    <div class="empty-ornament">✦</div>
-    <div class="empty-title">Your menu is empty</div>
-    <div class="empty-sub">Add your first dish to start tracking costs &amp; profits.</div>
-  </div>
+  <!-- DISHES -->
+  <section id="s-dishes" class="scr on">
+    <div class="ph">
+      <div><h2>Dishes</h2><p id="d-count">–</p></div>
+      <button class="btn btn-primary" onclick="openAddDish()">
+        <svg width="15" height="15" fill="none" stroke="#fff" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Dish
+      </button>
+    </div>
+    <div class="srch">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" placeholder="Search dishes..." oninput="filterDishes(this.value)">
+    </div>
+    <div id="dishes-list"><div class="spin"></div></div>
+  </section>
+
+  <!-- INGREDIENTS -->
+  <section id="s-ingredients" class="scr">
+    <div class="ph">
+      <div><h2>Ingredients</h2><p id="i-count">–</p></div>
+      <button class="btn btn-primary" onclick="openIngModal()">
+        <svg width="15" height="15" fill="none" stroke="#fff" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Ingredient
+      </button>
+    </div>
+    <div class="srch">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" placeholder="Search ingredients..." oninput="filterIngredients(this.value)">
+    </div>
+    <div id="ing-list"><div class="spin"></div></div>
+  </section>
+
+  <!-- STATS -->
+  <section id="s-stats" class="scr">
+    <div class="ph">
+      <div><h2>Dashboard</h2><p>Your kitchen at a glance</p></div>
+      <button class="btn btn-ghost btn-sm" onclick="loadStats()">↻ Refresh</button>
+    </div>
+    <div id="stats-content"><div class="spin"></div></div>
+  </section>
+
 </main>
+</div>
 
-<!-- MODAL -->
-<div class="overlay" id="overlay" onclick="overlayClick(event)">
+<!-- ADD DISH MODAL -->
+<div class="ov" id="ov-add-dish">
   <div class="modal">
-    <div class="modal-header">
-      <div class="modal-ornament">✦ Nish's Kitchen ✦</div>
-      <div class="modal-title" id="modal-title">Add New Dish</div>
-      <button class="close-btn" onclick="closeModal()">✕</button>
+    <div class="mh"><span class="mtitle">Add New Dish</span><button class="mclose" onclick="close_('ov-add-dish')">✕</button></div>
+    <div class="fg"><label class="fl">Dish Name *</label><input class="fi" id="dn" maxlength="100" placeholder="e.g. Butter Chicken"></div>
+    <div class="frow">
+      <div class="fg"><label class="fl">Prep Expense (₹)</label><input class="fi" id="dp" type="number" min="0" step="0.01" value="0" oninput="updateSum()"></div>
+      <div class="fg"><label class="fl">Profit Margin (₹)</label><input class="fi" id="dpr" type="number" min="0" step="0.01" value="75" oninput="updateSum()"></div>
     </div>
-    <div class="modal-body">
-      <input type="hidden" id="dish-id"/>
-      <div class="field">
-        <label>Dish Name</label>
-        <input type="text" id="f-name" placeholder="e.g. Butter Chicken"/>
-      </div>
-      <div>
-        <div class="ing-section-label">Ingredients &amp; Costs</div>
-        <div class="ing-list" id="ing-list"></div>
-        <button class="add-ing-btn" onclick="addIngRow()">+ Add ingredient</button>
-      </div>
-      <div class="row2">
-        <div class="field">
-          <label>Preparation Expense (₹)</label>
-          <input type="number" id="f-prep" placeholder="0" min="0" oninput="onCostChange()"/>
-        </div>
-        <div class="field">
-          <label>Profit Margin (₹) <span id="margin-hint" style="color:var(--muted);font-size:0.7rem;font-style:italic;letter-spacing:0"></span></label>
-          <input type="number" id="f-margin" value="75" min="0" oninput="onMarginChange()"/>
-        </div>
-      </div>
-      <div class="row2">
-        <div class="field">
-          <label>Selling Price (₹) <span style="font-size:0.68rem;color:var(--olive);font-style:italic;letter-spacing:0">— auto or override</span></label>
-          <input type="number" id="f-sell" placeholder="0" min="0" oninput="onSellChange()" style="border-color:var(--gold);background:rgba(196,154,60,0.06);font-weight:500"/>
-        </div>
-        <div class="field">
-          <label>COGS (calculated)</label>
-          <input type="number" id="f-cogs" readonly style="color:var(--muted);cursor:not-allowed;background:var(--cream2)" tabindex="-1"/>
-        </div>
-      </div>
-      <div class="cogs-preview">
-        <div class="cp-item">
-          <div class="cp-label">COGS</div>
-          <div class="cp-val" id="p-cogs">₹0</div>
-        </div>
-        <div class="divider-v"></div>
-        <div class="cp-item">
-          <div class="cp-label">Selling Price</div>
-          <div class="cp-val gold" id="p-sell">₹0</div>
-        </div>
-        <div class="divider-v"></div>
-        <div class="cp-item">
-          <div class="cp-label">Profit</div>
-          <div class="cp-val green" id="p-profit">₹0</div>
-        </div>
-      </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <label class="fl" style="margin:0">Ingredients</label>
+      <button class="btn btn-ghost btn-sm" onclick="openItdModal()">+ Add</button>
     </div>
-    <div class="modal-footer">
-      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
-      <button class="btn-save" onclick="saveDish()">Save Dish</button>
+    <div id="dil"></div>
+    <div class="sumbox">
+      <div class="sumrow"><span>Ingredient cost</span><span id="ss-ic">₹0.00</span></div>
+      <div class="sumrow"><span>Prep expense</span><span id="ss-p">₹0.00</span></div>
+      <hr class="sd">
+      <div class="sumrow b"><span>COGS</span><span id="ss-cogs" style="color:var(--orange)">₹0.00</span></div>
+      <div class="sumrow"><span>Profit margin</span><span id="ss-pr" style="color:var(--green)">₹0.00</span></div>
+      <hr class="sd">
+      <div class="sumrow b lg"><span>Selling Price</span><span id="ss-sp" style="color:var(--blue)">₹0.00</span></div>
     </div>
+    <div style="margin-top:14px"><button class="btn btn-primary btn-full" id="save-dish-btn" onclick="saveDish()">Save Dish</button></div>
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<!-- ADD INGREDIENT TO DISH (inner) -->
+<div class="ov" id="ov-itd" style="z-index:300">
+  <div class="modal" style="max-width:420px">
+    <div class="mh"><span class="mtitle">Add Ingredient</span><button class="mclose" onclick="close_('ov-itd')">✕</button></div>
+    <div class="fg ac">
+      <label class="fl">Ingredient Name *</label>
+      <input class="fi" id="itd-n" maxlength="100" placeholder="Type to search or enter new name" oninput="onItdSearch(this.value)" autocomplete="off">
+      <div class="ac-list" id="itd-sug"></div>
+      <div class="fhint" id="itd-hint">Search existing or type a new name</div>
+    </div>
+    <div class="frow">
+      <div class="fg" style="flex:2"><label class="fl">Quantity *</label><input class="fi" id="itd-q" type="number" min="0.001" step="any" placeholder="e.g. 500" oninput="recalcItd()"></div>
+      <div class="fg"><label class="fl">Unit</label>
+        <select class="fi" id="itd-u" onchange="recalcItd()">
+          <option>g</option><option>kg</option><option>ml</option><option>L</option><option>piece</option><option>tbsp</option><option>tsp</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg"><label class="fl">Total Cost for this quantity (₹) *</label>
+      <input class="fi" id="itd-p" type="number" min="0" step="0.01" placeholder="0.00">
+      <div class="fhint" id="itd-phint">Select from suggestions to auto-fill</div>
+    </div>
+    <button class="btn btn-primary btn-full" style="margin-top:6px" onclick="addItd()">Add to Dish</button>
+  </div>
+</div>
+
+<!-- ADD / EDIT INGREDIENT MODAL -->
+<div class="ov" id="ov-ing">
+  <div class="modal" style="max-width:420px">
+    <div class="mh"><span class="mtitle" id="ing-mtitle">Add Ingredient</span><button class="mclose" onclick="close_('ov-ing')">✕</button></div>
+    <input type="hidden" id="ing-id">
+    <div class="fg"><label class="fl">Ingredient Name *</label><input class="fi" id="ing-n" maxlength="100" placeholder="e.g. Tomato"></div>
+    <div class="frow">
+      <div class="fg" style="flex:2">
+        <label class="fl">Price per Unit (₹) *</label>
+        <input class="fi" id="ing-p" type="number" min="0" step="any" placeholder="e.g. 0.03" oninput="ingHint()">
+        <div class="fhint" id="ing-hint"></div>
+      </div>
+      <div class="fg"><label class="fl">Unit</label>
+        <select class="fi" id="ing-u" onchange="ingHint()">
+          <option>g</option><option>kg</option><option>ml</option><option>L</option><option>piece</option><option>tbsp</option><option>tsp</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn btn-primary btn-full" style="margin-top:6px" onclick="saveIng()">Save</button>
+  </div>
+</div>
+
+<!-- DISH DETAIL MODAL -->
+<div class="ov" id="ov-detail">
+  <div class="modal">
+    <div class="mh"><span class="mtitle" id="det-title">Dish Details</span><button class="mclose" onclick="close_('ov-detail')">✕</button></div>
+    <div id="det-body"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
 
 <script>
-let dishes = [];
-let allIngredients = [];
-let rowCounter = 0;
+// ── State ──────────────────────────────────────────────────────────────────
+let allDishes=[], allIngs=[], dishIL=[], itdSel=null, itdTimer=null;
 
-async function load() {
-  try {
-    const r = await fetch("/dishes");
-    dishes = await r.json();
-    render();
-  } catch { showToast("Cannot connect to server", true); }
+const UF={g:'w',kg:'w',ml:'v',L:'v',tbsp:'v',tsp:'v',piece:'c'};
+const UB={g:1,kg:1000,ml:1,L:1000,tbsp:15,tsp:5,piece:1};
+
+function calcCost(qty,qu,ppu,iu){
+  if(UF[qu]!==UF[iu]) return null;
+  return (qty*UB[qu])*(ppu/UB[iu]);
+}
+function pHint(p,u){
+  const v=parseFloat(p)||0;
+  if(u==='g')  return `₹${v.toFixed(2)}/g → ₹${(v*100).toFixed(2)}/100g → ₹${(v*1000).toFixed(2)}/kg`;
+  if(u==='kg') return `₹${v.toFixed(2)}/kg → ₹${(v/10).toFixed(2)}/100g → ₹${(v/1000).toFixed(4)}/g`;
+  if(u==='ml') return `₹${v.toFixed(2)}/ml → ₹${(v*1000).toFixed(2)}/L`;
+  if(u==='L')  return `₹${v.toFixed(2)}/L → ₹${(v/1000).toFixed(4)}/ml`;
+  return `₹${v.toFixed(2)} per ${u}`;
+}
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+
+// ── Nav ────────────────────────────────────────────────────────────────────
+function nav(name,btn){
+  document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('on'));
+  document.getElementById('s-'+name).classList.add('on');
+  btn.classList.add('on');
+  if(name==='dishes') loadDishes();
+  if(name==='ingredients') loadIngs();
+  if(name==='stats') loadStats();
 }
 
-async function loadIngredients() {
-  const r = await fetch("/ingredients");
-  allIngredients = await r.json();
+// ── Toast ──────────────────────────────────────────────────────────────────
+function toast(msg,err=false){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='on'+(err?' err':'');
+  clearTimeout(t._t); t._t=setTimeout(()=>t.className='',3200);
 }
 
-function render() {
-  const grid  = document.getElementById("dishes-grid");
-  const empty = document.getElementById("empty");
-  const count = document.getElementById("dish-count");
+// ── Modal ──────────────────────────────────────────────────────────────────
+function open_(id){document.getElementById(id).classList.add('on')}
+function close_(id){document.getElementById(id).classList.remove('on')}
 
-  count.textContent = `${dishes.length} dish${dishes.length !== 1 ? 'es' : ''}`;
+// ── API ────────────────────────────────────────────────────────────────────
+async function api(path,opts={}){
+  const r=await fetch(path,{headers:{'Content-Type':'application/json'},...opts});
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(d.error||'Error '+r.status);
+  return d;
+}
 
-  if (!dishes.length) {
-    grid.innerHTML = "";
-    empty.style.display = "block";
-    updateStats([]);
+// ── DISHES ────────────────────────────────────────────────────────────────
+async function loadDishes(){
+  document.getElementById('dishes-list').innerHTML='<div class="spin"></div>';
+  try{ allDishes=await api('/dishes'); renderDishes(allDishes); }
+  catch(e){ toast(e.message,true); }
+}
+
+function renderDishes(list){
+  document.getElementById('d-count').textContent=list.length+' dishes';
+  const el=document.getElementById('dishes-list');
+  if(!list.length){
+    el.innerHTML=`<div class="empty"><div class="empty-icon"><svg width="28" height="28" fill="none" stroke="#2E7D32" stroke-width="2" viewBox="0 0 24 24"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg></div><h3>No dishes yet</h3><p>Click Add Dish to get started</p></div>`;
     return;
   }
-
-  empty.style.display = "none";
-  grid.innerHTML = dishes.map((d, i) => `
-    <div class="dish-card" style="animation-delay:${i * 0.05}s">
-      <div class="card-top">
-        <div class="card-number">No. ${String(i + 1).padStart(2, '0')}</div>
-        <div class="card-name">${d.name}</div>
-        <div class="card-actions">
-          <button class="card-btn del" onclick="deleteDish(${d.id})" title="Delete">✕</button>
-        </div>
-      </div>
-      <div class="card-costs">
-        <div class="cost-item">
-          <span class="cost-label">Ingredients</span>
-          <span class="cost-value">₹${(+d.ingredient_cost).toFixed(2)}</span>
-        </div>
-        <div class="cost-item">
-          <span class="cost-label">Prep Expense</span>
-          <span class="cost-value">₹${(+d.preparation_expense).toFixed(2)}</span>
-        </div>
-      </div>
-      <div class="card-bottom">
-        <div class="cb-left">
-          <span class="cb-label">Selling Price</span>
-          <span class="cb-cogs">COGS ₹${(+d.cogs).toFixed(0)} + ₹${(+d.profit_margin).toFixed(0)}</span>
-        </div>
-        <div class="selling-price">₹${(+d.selling_price).toFixed(2)}</div>
-        <div class="profit-badge">
-          <span class="profit-label">Profit</span>
-          <span class="profit-val">+₹${(+d.profit_margin).toFixed(0)}</span>
-        </div>
-      </div>
-    </div>`).join("");
-
-  updateStats(dishes);
-}
-
-function updateStats(data) {
-  const n = data.length;
-  document.getElementById("s-total").textContent = n;
-  document.getElementById("s-cogs").textContent  = n ? "₹" + (data.reduce((a, d) => a + (+d.cogs), 0) / n).toFixed(0) : "₹0";
-  document.getElementById("s-price").textContent = n ? "₹" + (data.reduce((a, d) => a + (+d.selling_price), 0) / n).toFixed(0) : "₹0";
-  document.getElementById("s-profit").textContent = n ? "₹" + (data.reduce((a, d) => a + (+d.profit_margin), 0) / n).toFixed(0) : "₹0";
-}
-
-function openModal() {
-  document.getElementById("overlay").classList.add("open");
-  document.getElementById("modal-title").textContent = "Add New Dish";
-  document.getElementById("dish-id").value = "";
-  document.getElementById("f-name").value = "";
-  document.getElementById("f-prep").value = "";
-  document.getElementById("f-margin").value = 75;
-  document.getElementById("f-sell").value = "";
-  document.getElementById("ing-list").innerHTML = "";
-  rowCounter = 0;
-  addIngRow();
-  recalc();
-}
-
-function closeModal() {
-  document.getElementById("overlay").classList.remove("open");
-  closeAllSuggestions();
-}
-
-function overlayClick(e) {
-  if (e.target.id === "overlay") closeModal();
-}
-
-function addIngRow(name = "", cost = "", ingId = "") {
-  rowCounter++;
-  const rid = `ingrow-${rowCounter}`;
-
-  const div = document.createElement("div");
-  div.className = "ing-row";
-  div.dataset.rid = rid;
-
-  div.innerHTML = `
-    <div class="ing-name-wrap">
-      <input type="hidden" name="ing-id" value="${ingId}"/>
-      <input
-        type="text"
-        name="ing-name"
-        placeholder="Search ingredient…"
-        autocomplete="off"
-        value="${name}"
-        oninput="onIngInput(this)"
-        onkeydown="onIngKey(event, this)"
-        onfocus="onIngFocus(this)"
-        onblur="scheduleClose(this)"
-      />
-      <div class="suggestions-box" id="sug-${rid}"></div>
+  el.innerHTML=list.map(d=>`
+  <div class="dc">
+    <div class="dc-head">
+      <div class="dc-icon"><svg width="18" height="18" fill="none" stroke="#2E7D32" stroke-width="2" viewBox="0 0 24 24"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg></div>
+      <span class="dc-name">${esc(d.name)}</span>
+      <button class="ib" title="View details" onclick="viewDish(${d.id})">
+        <svg width="15" height="15" fill="none" stroke="#888" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+      <button class="ib" title="Delete" onclick="deleteDish(${d.id},'${esc(d.name)}')">
+        <svg width="15" height="15" fill="none" stroke="#ef5350" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M9 6V4h6v2"/></svg>
+      </button>
     </div>
-    <input type="number" name="ing-cost" placeholder="₹ Cost" value="${cost}" min="0" step="0.01" oninput="syncIngCost()"/>
-    <button class="rm-ing" onclick="this.closest('.ing-row').remove(); syncIngCost()">−</button>`;
-
-  document.getElementById("ing-list").appendChild(div);
+    <div class="chips">
+      <div class="chip"><div class="chip-lbl">COGS</div><div class="chip-val c-or">₹${(+d.cogs).toFixed(2)}</div></div>
+      <div class="chip"><div class="chip-lbl">Profit</div><div class="chip-val c-gr">₹${(+d.profit_margin).toFixed(2)}</div></div>
+      <div class="chip"><div class="chip-lbl">Sell</div><div class="chip-val c-bl">₹${(+d.selling_price).toFixed(2)}</div></div>
+    </div>
+  </div>`).join('');
 }
 
-const debounceMap = {};
-
-function onIngInput(input) {
-  const rid = input.closest('.ing-row').dataset.rid;
-  input.closest('.ing-row').querySelector('[name="ing-id"]').value = "";
-  clearTimeout(debounceMap[rid]);
-  debounceMap[rid] = setTimeout(() => fetchAndRender(input), 200);
+function filterDishes(q){
+  renderDishes(allDishes.filter(d=>d.name.toLowerCase().includes(q.toLowerCase())));
 }
 
-function onIngFocus(input) {
-  fetchAndRender(input);
+async function deleteDish(id,name){
+  if(!confirm(`Delete "${name}"? This cannot be undone.`)) return;
+  try{ await api(`/dishes/${id}`,{method:'DELETE'}); toast('Dish deleted'); loadDishes(); }
+  catch(e){ toast(e.message,true); }
 }
 
-async function fetchAndRender(input) {
-  const q = input.value.trim();
-  const rid = input.closest('.ing-row').dataset.rid;
-  let results = [];
+async function viewDish(id){
+  document.getElementById('det-body').innerHTML='<div class="spin"></div>';
+  open_('ov-detail');
+  try{
+    const d=await api(`/dishes/${id}`);
+    document.getElementById('det-title').textContent=d.name;
+    const ings=d.ingredients||[];
+    document.getElementById('det-body').innerHTML=`
+      <div class="sumbox" style="margin-bottom:16px">
+        <div class="sumrow"><span>Ingredient cost</span><span>₹${(+d.ingredient_cost).toFixed(2)}</span></div>
+        <div class="sumrow"><span>Prep expense</span><span>₹${(+d.preparation_expense).toFixed(2)}</span></div>
+        <hr class="sd">
+        <div class="sumrow b"><span>COGS</span><span style="color:var(--orange)">₹${(+d.cogs).toFixed(2)}</span></div>
+        <div class="sumrow"><span>Profit margin</span><span style="color:var(--green)">₹${(+d.profit_margin).toFixed(2)}</span></div>
+        <hr class="sd">
+        <div class="sumrow b lg"><span>Selling Price</span><span style="color:var(--blue)">₹${(+d.selling_price).toFixed(2)}</span></div>
+      </div>
+      <div style="font-weight:700;margin-bottom:10px;font-size:.9rem">Ingredients</div>
+      ${ings.length ? ings.map(i=>{
+        const qty=+i.quantity, cost=qty*(+(i.price_per_base_unit||0));
+        return `<div class="detail-ing">
+          <div class="detail-av">${esc((i.name||'?')[0].toUpperCase())}</div>
+          <div style="flex:1"><div style="font-weight:700;font-size:.9rem">${esc(i.name)}</div>
+          <div style="font-size:.75rem;color:var(--muted)">${qty%1===0?qty:qty} ${i.ingredient_unit||''}</div></div>
+          <span style="font-weight:700;color:var(--orange);font-size:.9rem">₹${cost.toFixed(2)}</span>
+        </div>`;
+      }).join('') : '<p style="color:var(--muted);font-size:.85rem">No ingredients recorded.</p>'}`;
+  } catch(e){
+    document.getElementById('det-body').innerHTML=`<p style="color:var(--red)">${e.message}</p>`;
+  }
+}
 
-  if (q === "") {
-    results = allIngredients.slice(0, 10);
+// ── ADD DISH ──────────────────────────────────────────────────────────────
+function openAddDish(){
+  dishIL=[];
+  document.getElementById('dn').value='';
+  document.getElementById('dp').value='0';
+  document.getElementById('dpr').value='75';
+  renderDIL(); updateSum();
+  open_('ov-add-dish');
+}
+
+function renderDIL(){
+  const el=document.getElementById('dil');
+  if(!dishIL.length){
+    el.innerHTML=`<div style="text-align:center;padding:14px;color:var(--muted);font-size:.83rem;background:var(--bg);border-radius:10px;margin-bottom:10px">No ingredients added yet</div>`;
+    return;
+  }
+  el.innerHTML=dishIL.map((it,i)=>`
+  <div class="dil-item">
+    <div class="dil-av">${esc(it.name[0].toUpperCase())}</div>
+    <span class="dil-name">${esc(it.name)}</span>
+    <span class="dil-qty">${it.qty%1===0?it.qty:it.qty} ${it.unit}</span>
+    <span class="dil-cost">₹${(it.qty*it.ppb).toFixed(2)}</span>
+    <button class="ib" onclick="dishIL.splice(${i},1);renderDIL();updateSum()">
+      <svg width="13" height="13" fill="none" stroke="#999" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>`).join('');
+}
+
+function updateSum(){
+  const ic=dishIL.reduce((s,i)=>s+i.qty*i.ppb,0);
+  const p=parseFloat(document.getElementById('dp').value)||0;
+  const pr=parseFloat(document.getElementById('dpr').value)||0;
+  const cogs=ic+p, sell=cogs+pr;
+  document.getElementById('ss-ic').textContent='₹'+ic.toFixed(2);
+  document.getElementById('ss-p').textContent='₹'+p.toFixed(2);
+  document.getElementById('ss-cogs').textContent='₹'+cogs.toFixed(2);
+  document.getElementById('ss-pr').textContent='₹'+pr.toFixed(2);
+  document.getElementById('ss-sp').textContent='₹'+sell.toFixed(2);
+}
+
+async function saveDish(){
+  const name=document.getElementById('dn').value.trim();
+  const prep=parseFloat(document.getElementById('dp').value)||0;
+  const profit=parseFloat(document.getElementById('dpr').value)||0;
+  if(!name){toast('Enter a dish name',true);return}
+  if(!dishIL.length){toast('Add at least one ingredient',true);return}
+  const btn=document.getElementById('save-dish-btn');
+  btn.disabled=true; btn.textContent='Saving...';
+  try{
+    const resolved=[];
+    for(const it of dishIL){
+      let id=it.ingId||0;
+      if(!id){
+        const cr=await api('/ingredients',{method:'POST',body:JSON.stringify({name:it.name,price_per_unit:it.ppb,unit:it.unit})});
+        id=cr.id;
+      }
+      resolved.push({id,qty:it.qty,price:it.ppb});
+    }
+    await api('/dishes',{method:'POST',body:JSON.stringify({name,prep,profit,ingredients:resolved})});
+    close_('ov-add-dish'); toast('Dish saved ✓'); loadDishes();
+  } catch(e){ toast(e.message,true); }
+  finally{ btn.disabled=false; btn.textContent='Save Dish'; }
+}
+
+// ── ADD INGREDIENT TO DISH ────────────────────────────────────────────────
+function openItdModal(){
+  itdSel=null;
+  ['itd-n','itd-q','itd-p'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('itd-u').value='g';
+  document.getElementById('itd-sug').className='ac-list';
+  document.getElementById('itd-hint').textContent='Search existing or type a new name';
+  document.getElementById('itd-hint').className='fhint';
+  document.getElementById('itd-phint').textContent='Select from suggestions to auto-fill';
+  document.getElementById('itd-phint').className='fhint';
+  open_('ov-itd');
+}
+
+function onItdSearch(val){
+  clearTimeout(itdTimer);
+  if(itdSel && val!==itdSel.name){
+    itdSel=null;
+    document.getElementById('itd-hint').textContent='Search existing or type a new name';
+    document.getElementById('itd-hint').className='fhint';
+    document.getElementById('itd-p').value='';
+    document.getElementById('itd-phint').textContent='Enter cost manually';
+    document.getElementById('itd-phint').className='fhint';
+  }
+  if(!val.trim()){document.getElementById('itd-sug').className='ac-list';return}
+  itdTimer=setTimeout(async()=>{
+    const res=await api(`/ingredients/search?q=${encodeURIComponent(val.trim())}`).catch(()=>[]);
+    renderSug(res);
+  },320);
+}
+
+function renderSug(items){
+  const el=document.getElementById('itd-sug');
+  if(!items.length){el.className='ac-list';return}
+  el.innerHTML=items.map(i=>`
+  <div class="ac-item" onclick='pickSug(${JSON.stringify(i)})'>
+    <div class="ac-av"><svg width="13" height="13" fill="none" stroke="#2E7D32" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg></div>
+    <div><div class="ac-name">${esc(i.name)}</div><div class="ac-pr">${pHint(i.price_per_unit,i.unit)}</div></div>
+  </div>`).join('');
+  el.className='ac-list on';
+}
+
+function pickSug(ing){
+  itdSel=ing;
+  document.getElementById('itd-n').value=ing.name;
+  document.getElementById('itd-sug').className='ac-list';
+  document.getElementById('itd-hint').textContent='✓ '+pHint(ing.price_per_unit,ing.unit);
+  document.getElementById('itd-hint').className='fhint ok';
+  recalcItd();
+}
+
+function recalcItd(){
+  if(!itdSel) return;
+  const qty=parseFloat(document.getElementById('itd-q').value)||0;
+  const u=document.getElementById('itd-u').value;
+  const cost=calcCost(qty,u,itdSel.price_per_unit,itdSel.unit);
+  if(cost!==null){
+    document.getElementById('itd-p').value=cost.toFixed(2);
+    document.getElementById('itd-phint').textContent='Auto-calculated ✓';
+    document.getElementById('itd-phint').className='fhint ok';
   } else {
-    const r = await fetch(`/ingredients/search?q=${encodeURIComponent(q)}`);
-    results = await r.json();
+    document.getElementById('itd-phint').textContent='Unit mismatch — enter cost manually';
+    document.getElementById('itd-phint').className='fhint';
   }
-
-  renderSuggestions(input, results, q);
 }
 
-function renderSuggestions(input, results, q) {
-  const rid = input.closest('.ing-row').dataset.rid;
-  const box = document.getElementById(`sug-${rid}`);
-  if (!box) return;
-
-  const escape = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const highlight = name => q
-    ? name.replace(new RegExp(`(${escape(q)})`, 'gi'), '<strong>$1</strong>')
-    : name;
-
-  const items = results.map(ing => `
-    <div class="sug-item"
-         data-id="${ing.id}" data-name="${ing.name.replace(/"/g,'&quot;')}"
-         onmousedown="selectIng(event, '${rid}')">
-      ✦ ${highlight(ing.name)}
-    </div>`).join("");
-
-  const addNew = q
-    ? `<div class="sug-new" onmousedown="createAndSelectIng(event, '${rid}', this)"
-             data-name="${q.replace(/"/g,'&quot;')}">
-         ＋ Add "<em>${q}</em>" as new ingredient
-       </div>`
-    : "";
-
-  box.innerHTML = items || (addNew ? "" : `<div class="sug-empty">No ingredients found</div>`);
-  box.innerHTML += addNew;
-  box.classList.add("open");
+function addItd(){
+  const name=document.getElementById('itd-n').value.trim();
+  const qty=parseFloat(document.getElementById('itd-q').value);
+  const price=parseFloat(document.getElementById('itd-p').value);
+  const unit=document.getElementById('itd-u').value;
+  if(!name){toast('Enter ingredient name',true);return}
+  if(!qty||qty<=0){toast('Enter valid quantity',true);return}
+  if(isNaN(price)||price<0){toast('Enter valid price',true);return}
+  dishIL.push({ingId:itdSel?.id||null,name,qty,unit,ppb:price/qty});
+  close_('ov-itd'); renderDIL(); updateSum();
 }
 
-function selectIng(e, rid) {
-  e.preventDefault();
-  const item = e.currentTarget;
-  const row  = document.querySelector(`.ing-row[data-rid="${rid}"]`);
-  row.querySelector('[name="ing-id"]').value   = item.dataset.id;
-  row.querySelector('[name="ing-name"]').value = item.dataset.name;
-  closeSug(rid);
+// ── INGREDIENTS ───────────────────────────────────────────────────────────
+async function loadIngs(){
+  document.getElementById('ing-list').innerHTML='<div class="spin"></div>';
+  try{ allIngs=await api('/ingredients'); renderIngs(allIngs); }
+  catch(e){ toast(e.message,true); }
 }
 
-async function createAndSelectIng(e, rid, el) {
-  e.preventDefault();
-  const name = el.dataset.name.trim();
-  if (!name) return;
-
-  await fetch("/ingredients", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name })
-  });
-
-  await loadIngredients();
-  const found = allIngredients.find(i => i.name.toLowerCase() === name.toLowerCase());
-
-  const row = document.querySelector(`.ing-row[data-rid="${rid}"]`);
-  row.querySelector('[name="ing-id"]').value   = found ? found.id : "";
-  row.querySelector('[name="ing-name"]').value = name;
-  closeSug(rid);
-  showToast(`"${name}" added to ingredients`);
+function renderIngs(list){
+  document.getElementById('i-count').textContent=list.length+' items';
+  const el=document.getElementById('ing-list');
+  if(!list.length){
+    el.innerHTML=`<div class="empty"><div class="empty-icon"><svg width="28" height="28" fill="none" stroke="#2E7D32" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg></div><h3>No ingredients yet</h3><p>Click Add Ingredient to get started</p></div>`;
+    return;
+  }
+  el.innerHTML=list.map(i=>`
+  <div class="ir">
+    <div class="ir-av">${esc(i.name[0].toUpperCase())}</div>
+    <div class="ir-info">
+      <div class="ir-name">${esc(i.name)}</div>
+      <div class="ir-price">${pHint(i.price_per_unit,i.unit)}</div>
+    </div>
+    <div class="ir-acts">
+      <button class="ib" title="Edit" onclick='editIng(${JSON.stringify(i)})'>
+        <svg width="15" height="15" fill="none" stroke="#888" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      </button>
+      <button class="ib" title="Delete" onclick="deleteIng(${i.id},'${esc(i.name)}')">
+        <svg width="15" height="15" fill="none" stroke="#ef5350" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M9 6V4h6v2"/></svg>
+      </button>
+    </div>
+  </div>`).join('');
 }
 
-function onIngKey(e, input) {
-  const rid = input.closest('.ing-row').dataset.rid;
-  const box = document.getElementById(`sug-${rid}`);
-  if (!box || !box.classList.contains("open")) return;
+function filterIngredients(q){
+  renderIngs(allIngs.filter(i=>i.name.toLowerCase().includes(q.toLowerCase())));
+}
 
-  const items = [...box.querySelectorAll(".sug-item")];
-  const cur   = items.findIndex(el => el.classList.contains("active"));
+function openIngModal(){
+  document.getElementById('ing-mtitle').textContent='Add Ingredient';
+  document.getElementById('ing-id').value='';
+  document.getElementById('ing-n').value='';
+  document.getElementById('ing-p').value='';
+  document.getElementById('ing-u').value='g';
+  document.getElementById('ing-hint').textContent='';
+  open_('ov-ing');
+}
 
-  if (e.key === "ArrowDown") {
-    e.preventDefault();
-    items[cur]?.classList.remove("active");
-    const next = items[Math.min(cur + 1, items.length - 1)];
-    next?.classList.add("active");
-    next?.scrollIntoView({ block: "nearest" });
-  } else if (e.key === "ArrowUp") {
-    e.preventDefault();
-    items[cur]?.classList.remove("active");
-    const prev = items[Math.max(cur - 1, 0)];
-    prev?.classList.add("active");
-    prev?.scrollIntoView({ block: "nearest" });
-  } else if (e.key === "Enter") {
-    e.preventDefault();
-    const active = box.querySelector(".sug-item.active");
-    if (active) {
-      const row = input.closest('.ing-row');
-      row.querySelector('[name="ing-id"]').value   = active.dataset.id;
-      row.querySelector('[name="ing-name"]').value = active.dataset.name;
-      closeSug(rid);
+function editIng(ing){
+  document.getElementById('ing-mtitle').textContent='Edit Ingredient';
+  document.getElementById('ing-id').value=ing.id;
+  document.getElementById('ing-n').value=ing.name;
+  document.getElementById('ing-p').value=ing.price_per_unit;
+  document.getElementById('ing-u').value=ing.unit;
+  ingHint(); open_('ov-ing');
+}
+
+function ingHint(){
+  const p=document.getElementById('ing-p').value;
+  const u=document.getElementById('ing-u').value;
+  document.getElementById('ing-hint').textContent=pHint(p,u);
+}
+
+async function saveIng(){
+  const id=document.getElementById('ing-id').value;
+  const name=document.getElementById('ing-n').value.trim();
+  const price=parseFloat(document.getElementById('ing-p').value);
+  const unit=document.getElementById('ing-u').value;
+  if(!name){toast('Enter ingredient name',true);return}
+  if(isNaN(price)||price<0){toast('Enter valid price',true);return}
+  try{
+    if(id){
+      await api(`/ingredients/${id}`,{method:'PUT',body:JSON.stringify({name,price_per_unit:price,unit})});
+      toast('Updated ✓');
+    } else {
+      await api('/ingredients',{method:'POST',body:JSON.stringify({name,price_per_unit:price,unit})});
+      toast('Added ✓');
     }
-  } else if (e.key === "Escape") {
-    closeSug(rid);
-  }
+    close_('ov-ing'); loadIngs();
+  } catch(e){ toast(e.message,true); }
 }
 
-const closeTimers = {};
-
-function scheduleClose(input) {
-  const rid = input.closest('.ing-row').dataset.rid;
-  closeTimers[rid] = setTimeout(() => closeSug(rid), 180);
+async function deleteIng(id,name){
+  if(!confirm(`Delete "${name}"?`)) return;
+  try{ await api(`/ingredients/${id}`,{method:'DELETE'}); toast('Deleted'); loadIngs(); }
+  catch(e){ toast(e.message,true); }
 }
 
-function closeSug(rid) {
-  document.getElementById(`sug-${rid}`)?.classList.remove("open");
+// ── STATS ─────────────────────────────────────────────────────────────────
+async function loadStats(){
+  document.getElementById('stats-content').innerHTML='<div class="spin"></div>';
+  try{
+    const s=await api('/stats');
+    const td=s.top_dish;
+    document.getElementById('stats-content').innerHTML=`
+    <div class="card-grid">
+      <div class="sc">
+        <div class="sc-icon" style="background:var(--green-l)"><svg width="18" height="18" fill="none" stroke="#2E7D32" stroke-width="2" viewBox="0 0 24 24"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg></div>
+        <div class="sc-val" style="color:var(--green)">${s.total_dishes}</div>
+        <div class="sc-lbl">Total Dishes</div>
+      </div>
+      <div class="sc">
+        <div class="sc-icon" style="background:var(--blue-l)"><svg width="18" height="18" fill="none" stroke="#1565C0" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg></div>
+        <div class="sc-val" style="color:var(--blue)">${s.total_ingredients}</div>
+        <div class="sc-lbl">Ingredients</div>
+      </div>
+      <div class="sc">
+        <div class="sc-icon" style="background:var(--orange-l)"><svg width="18" height="18" fill="none" stroke="#E65100" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>
+        <div class="sc-val" style="color:var(--orange)">₹${(+s.avg_profit_margin).toFixed(0)}</div>
+        <div class="sc-lbl">Avg Profit Margin</div>
+      </div>
+      <div class="sc">
+        <div class="sc-icon" style="background:var(--amber-l)"><svg width="18" height="18" fill="#F9A825" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>
+        <div class="sc-val" style="color:var(--amber)">${td?td.name.split(' ').slice(0,2).join(' '):'N/A'}</div>
+        ${td?`<div class="sc-sub">₹${(+td.selling_price).toFixed(0)}</div>`:''}
+        <div class="sc-lbl">Top Dish</div>
+      </div>
+    </div>
+    <div style="font-weight:700;font-size:.9rem;margin-bottom:10px">Tips</div>
+    <div class="tc"><div class="tc-icon" style="background:var(--green-l)"><svg width="15" height="15" fill="none" stroke="#2E7D32" stroke-width="2" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.96"/></svg></div><div><div class="tc-title">Refresh data</div><div class="tc-body">Click ↻ Refresh or navigate between tabs to reload fresh data.</div></div></div>
+    <div class="tc"><div class="tc-icon" style="background:var(--blue-l)"><svg width="15" height="15" fill="none" stroke="#1565C0" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div><div><div class="tc-title">Auto price calculation</div><div class="tc-body">Select an ingredient from suggestions when adding to a dish to auto-fill the cost.</div></div></div>
+    <div class="tc"><div class="tc-icon" style="background:var(--orange-l)"><svg width="15" height="15" fill="none" stroke="#E65100" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div><div><div class="tc-title">Edit ingredient prices</div><div class="tc-body">Click the edit icon on any ingredient to update its price and unit.</div></div></div>`;
+  } catch(e){ toast(e.message,true); }
 }
 
-function closeAllSuggestions() {
-  document.querySelectorAll(".suggestions-box").forEach(b => b.classList.remove("open"));
-}
-
-function getIngTotal() {
-  let t = 0;
-  document.querySelectorAll(".ing-row").forEach(row => {
-    t += parseFloat(row.querySelector('[name="ing-cost"]').value) || 0;
-  });
-  return t;
-}
-
-function getCogs() {
-  const prep = parseFloat(document.getElementById("f-prep").value) || 0;
-  return getIngTotal() + prep;
-}
-
-function onCostChange() {
-  const cogs   = getCogs();
-  const margin = parseFloat(document.getElementById("f-margin").value) || 75;
-  document.getElementById("f-sell").value = (cogs + margin).toFixed(2);
-  recalc();
-}
-
-function onMarginChange() {
-  const cogs   = getCogs();
-  const margin = parseFloat(document.getElementById("f-margin").value) || 0;
-  document.getElementById("f-sell").value = (cogs + margin).toFixed(2);
-  recalc();
-}
-
-function onSellChange() {
-  const cogs   = getCogs();
-  const sell   = parseFloat(document.getElementById("f-sell").value) || 0;
-  document.getElementById("f-margin").value = (sell - cogs).toFixed(2);
-  recalc();
-}
-
-function syncIngCost() { onCostChange(); }
-
-function recalc() {
-  const cogs   = getCogs();
-  const sell   = parseFloat(document.getElementById("f-sell").value) || (cogs + 75);
-  const margin = sell - cogs;
-
-  document.getElementById("f-cogs").value     = cogs.toFixed(2);
-  document.getElementById("p-cogs").textContent = "₹" + cogs.toFixed(2);
-  document.getElementById("p-sell").textContent = "₹" + sell.toFixed(2);
-  document.getElementById("p-profit").textContent = "₹" + margin.toFixed(2);
-
-  const hint = document.getElementById("margin-hint");
-  if (margin < 70)       { hint.textContent = "⚠ below ₹70"; hint.style.color = "var(--rust)"; }
-  else if (margin > 80)  { hint.textContent = "above ₹80";    hint.style.color = "var(--rust)"; }
-  else                   { hint.textContent = "✓ ₹70–80 range"; hint.style.color = "var(--olive)"; }
-}
-
-async function saveDish() {
-  const name = document.getElementById("f-name").value.trim();
-  if (!name) return showToast("Dish name is required", true);
-
-  const prep = parseFloat(document.getElementById("f-prep").value) || 0;
-  const cogs  = getCogs();
-  const sell  = parseFloat(document.getElementById("f-sell").value) || (cogs + 75);
-  const profit = parseFloat((sell - cogs).toFixed(2));
-
-  const ingredients = [];
-
-  for (const row of document.querySelectorAll(".ing-row")) {
-    const ingId   = row.querySelector('[name="ing-id"]').value;
-    const ingName = row.querySelector('[name="ing-name"]').value.trim();
-    const cost    = parseFloat(row.querySelector('[name="ing-cost"]').value) || 0;
-
-    if (!ingName) continue;
-
-    if (!ingId) {
-      showToast(`Select "${ingName}" from the suggestions first`, true);
-      return;
-    }
-
-    ingredients.push({ id: parseInt(ingId), qty: 1, price: cost });
-  }
-
-  try {
-    const r = await fetch("/dishes", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, prep, profit, ingredients })
-    });
-    if (!r.ok) throw new Error();
-    closeModal();
-    load();
-    showToast("Dish added to menu");
-  } catch { showToast("Failed to save dish", true); }
-}
-
-async function deleteDish(id) {
-  if (!confirm("Remove this dish from the menu?")) return;
-  await fetch(`/dishes/${id}`, { method: "DELETE" });
-  load();
-  showToast("Dish removed from menu");
-}
-
-function showToast(msg, err = false) {
-  const t = document.getElementById("toast");
-  t.textContent = msg;
-  t.className = "toast show" + (err ? " err" : "");
-  setTimeout(() => t.className = "toast", 3200);
-}
-
-load();
-loadIngredients();
+// ── Init ──────────────────────────────────────────────────────────────────
+loadDishes();
 </script>
 </body>
 </html>
