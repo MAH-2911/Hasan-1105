@@ -28,7 +28,7 @@ CORS(app, origins=ALLOWED_ORIGINS, supports_credentials=False)
 # ── Rate limiter ──────────────────────────────────────────────────────────────
 limiter = Limiter(
     key_func=get_remote_address, app=app,
-    default_limits=["200 per day", "60 per hour"],
+    default_limits=["2000 per day", "500 per hour"],
     headers_enabled=True,
 )
 
@@ -91,7 +91,7 @@ else:
 # ── Routes ────────────────────────────────────────────────────────────────────
 
 @app.route("/")
-@limiter.limit("60 per minute")
+@limiter.limit("120 per minute")
 def index():
     return render_template("index.html")
 
@@ -123,7 +123,7 @@ def get_dish(id):
     return jsonify(result)
 
 @app.route("/dishes", methods=["POST"])
-@limiter.limit("5 per 15 minutes")
+@limiter.limit("60 per hour")
 def add_dish():
     data, err = _require_json()
     if err: return err
@@ -156,27 +156,35 @@ def add_dish():
         validated.append({"id": int(ing_id), "qty": qty, "price": price})
 
     conn = get_db()
-    cur = conn.cursor()
-    cur.execute(
-        "INSERT INTO dishes (name, preparation_expense, profit_margin) VALUES (?,?,?)",
-        (name, prep, profit)
-    )
-    dish_id = cur.lastrowid
-    for item in validated:
+    try:
+        cur = conn.cursor()
         cur.execute(
-            "INSERT INTO dish_ingredients (dish_id, ingredient_id, quantity, price) VALUES (?,?,?,?)",
-            (dish_id, item["id"], item["qty"], item["price"])
+            "INSERT INTO dishes (name, preparation_expense, profit_margin) VALUES (?,?,?)",
+            (name, prep, profit)
         )
-    conn.commit()
-    return jsonify({"message": "Dish added.", "id": dish_id}), 201
+        dish_id = cur.lastrowid
+        for item in validated:
+            cur.execute(
+                "INSERT INTO dish_ingredients (dish_id, ingredient_id, quantity, price) VALUES (?,?,?,?)",
+                (dish_id, item["id"], item["qty"], item["price"])
+            )
+        conn.commit()
+        return jsonify({"message": "Dish added.", "id": dish_id}), 201
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"error": "Could not save dish. " + str(e)}), 500
 
 @app.route("/dishes/<int:id>", methods=["DELETE"])
-@limiter.limit("5 per 15 minutes")
+@limiter.limit("60 per hour")
 def delete_dish(id):
     conn = get_db()
-    conn.execute("DELETE FROM dishes WHERE id=?", (id,))
-    conn.commit()
-    return jsonify({"message": "Deleted."})
+    try:
+        conn.execute("DELETE FROM dishes WHERE id=?", (id,))
+        conn.commit()
+        return jsonify({"message": "Deleted."})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"error": "Could not delete dish. " + str(e)}), 500
 
 # ── Ingredients ───────────────────────────────────────────────────────────────
 
@@ -188,7 +196,7 @@ def get_ingredients():
     return jsonify([dict(row) for row in data])
 
 @app.route("/ingredients/search", methods=["GET"])
-@limiter.limit("60 per minute")
+@limiter.limit("120 per minute")
 def search_ingredients():
     q = request.args.get("q", "").strip()
     if not q: return jsonify([])
@@ -202,7 +210,7 @@ def search_ingredients():
     return jsonify([dict(row) for row in data])
 
 @app.route("/ingredients", methods=["POST"])
-@limiter.limit("5 per 15 minutes")
+@limiter.limit("60 per hour")
 def add_ingredient():
     data, err = _require_json()
     if err: return err
@@ -210,12 +218,14 @@ def add_ingredient():
     name, e = _safe_str(data.get("name", ""), "name")
     if e: return jsonify({"error": e}), 400
 
-    price, e = _safe_num(data.get("price_per_unit", 0), "price_per_unit")
+    # price_per_unit and unit are optional — default to 0 and 'g'
+    price_raw = data.get("price_per_unit", 0)
+    price, e = _safe_num(price_raw if price_raw is not None else 0, "price_per_unit")
     if e: return jsonify({"error": e}), 400
 
     unit = data.get("unit", "g")
     if unit not in ALLOWED_UNITS:
-        return jsonify({"error": f"unit must be one of: {', '.join(sorted(ALLOWED_UNITS))}"}), 400
+        unit = "g"  # default to g if invalid/missing
 
     conn = get_db()
     try:
@@ -226,11 +236,12 @@ def add_ingredient():
         conn.commit()
         row = conn.execute("SELECT * FROM ingredients WHERE id=?", (cur.lastrowid,)).fetchone()
         return jsonify(dict(row)), 201
-    except Exception:
-        return jsonify({"error": "Could not save. Ingredient may already exist."}), 409
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"error": "Could not save ingredient. " + str(e)}), 500
 
 @app.route("/ingredients/<int:id>", methods=["PUT"])
-@limiter.limit("5 per 15 minutes")
+@limiter.limit("60 per hour")
 def update_ingredient(id):
     data, err = _require_json()
     if err: return err
@@ -243,31 +254,39 @@ def update_ingredient(id):
 
     unit = data.get("unit", "g")
     if unit not in ALLOWED_UNITS:
-        return jsonify({"error": f"unit must be one of: {', '.join(sorted(ALLOWED_UNITS))}"}), 400
+        unit = "g"
 
     conn = get_db()
-    conn.execute(
-        "UPDATE ingredients SET name=?, price_per_unit=?, unit=? WHERE id=?",
-        (name, price, unit, id)
-    )
-    conn.commit()
-    row = conn.execute("SELECT * FROM ingredients WHERE id=?", (id,)).fetchone()
-    if not row:
-        return jsonify({"error": "Not found."}), 404
-    return jsonify(dict(row))
+    try:
+        conn.execute(
+            "UPDATE ingredients SET name=?, price_per_unit=?, unit=? WHERE id=?",
+            (name, price, unit, id)
+        )
+        conn.commit()
+        row = conn.execute("SELECT * FROM ingredients WHERE id=?", (id,)).fetchone()
+        if not row:
+            return jsonify({"error": "Not found."}), 404
+        return jsonify(dict(row))
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"error": "Could not update ingredient. " + str(e)}), 500
 
 @app.route("/ingredients/<int:id>", methods=["DELETE"])
-@limiter.limit("5 per 15 minutes")
+@limiter.limit("60 per hour")
 def delete_ingredient(id):
     conn = get_db()
-    conn.execute("DELETE FROM ingredients WHERE id=?", (id,))
-    conn.commit()
-    return jsonify({"message": "Deleted."})
+    try:
+        conn.execute("DELETE FROM ingredients WHERE id=?", (id,))
+        conn.commit()
+        return jsonify({"message": "Deleted."})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"error": "Could not delete ingredient. " + str(e)}), 500
 
 # ── Stats ─────────────────────────────────────────────────────────────────────
 
 @app.route("/stats", methods=["GET"])
-@limiter.limit("30 per minute")
+@limiter.limit("60 per minute")
 def get_stats():
     conn = get_db()
     dishes = conn.execute("SELECT COUNT(*) AS count FROM dishes").fetchone()
