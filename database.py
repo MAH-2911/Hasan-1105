@@ -1,29 +1,20 @@
 import sqlite3
 import os
-from flask import g
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "kitchen.db")
 
 def get_db():
-    """Per-request connection stored on Flask g — thread-safe."""
-    if "db" not in g:
-        g.db = sqlite3.connect(DB_PATH)
-        g.db.row_factory = sqlite3.Row
-        g.db.execute("PRAGMA foreign_keys = ON")
-        g.db.execute("PRAGMA journal_mode = WAL")
-    return g.db
-
-def close_db(e=None):
-    db = g.pop("db", None)
-    if db is not None:
-        db.close()
+    conn = sqlite3.connect(DB_PATH, timeout=10)
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA foreign_keys = ON")
+    conn.execute("PRAGMA journal_mode = WAL")
+    return conn
 
 def init_app(app):
-    app.teardown_appcontext(close_db)
+    pass  # no teardown needed — each route closes its own connection
 
 def init_db():
-    conn = sqlite3.connect(DB_PATH)
-    conn.execute("PRAGMA foreign_keys = ON")
+    conn = get_db()
     with open(os.path.join(os.path.dirname(__file__), "schema.sql")) as f:
         conn.executescript(f.read())
     conn.commit()
@@ -31,8 +22,7 @@ def init_db():
     print("Database initialised.")
 
 def migrate_db():
-    """Safely add new columns without losing existing data."""
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_db()
     for col, defn in [
         ("price_per_unit", "REAL DEFAULT 0"),
         ("unit",           "TEXT DEFAULT 'g'"),
@@ -42,7 +32,7 @@ def migrate_db():
             conn.commit()
             print(f"Migration: added '{col}' to ingredients.")
         except Exception:
-            pass   # already exists
+            pass  # already exists
     conn.close()
 
 if __name__ == "__main__":
