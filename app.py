@@ -82,11 +82,13 @@ def _require_json():
         return None, (jsonify({"error": "Invalid JSON body."}), 400)
     return data, None
 
-# ── DB init / migrate ─────────────────────────────────────────────────────────
-if not os.path.exists("kitchen.db"):
-    init_db()
-else:
+# ── DB init / migrate (SAFE STARTUP) ──────────────────────────────────────────
+def setup_database():
+    if not os.path.exists("kitchen.db"):
+        init_db()
     migrate_db()
+
+setup_database()
 
 # ── Routes ────────────────────────────────────────────────────────────────────
 

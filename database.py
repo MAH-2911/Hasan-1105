@@ -11,7 +11,7 @@ def get_db():
     return conn
 
 def init_app(app):
-    pass  # each route closes its own connection
+    pass
 
 def init_db():
     conn = get_db()
@@ -23,44 +23,21 @@ def init_db():
 
 def migrate_db():
     conn = get_db()
+    cursor = conn.cursor()
 
-    # Fix bad schema: if ingredients has dish_id column, rebuild the table
-    cols = [row[1] for row in conn.execute("PRAGMA table_info(ingredients)").fetchall()]
-    if "dish_id" in cols:
-        print("Migration: fixing bad ingredients schema (removing dish_id)...")
-        conn.executescript("""
-            CREATE TABLE IF NOT EXISTS ingredients_new (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL UNIQUE,
-                price_per_unit REAL NOT NULL DEFAULT 0,
-                unit TEXT NOT NULL DEFAULT 'g'
-            );
-            INSERT OR IGNORE INTO ingredients_new (id, name, price_per_unit, unit)
-                SELECT id, name,
-                       COALESCE(price_per_unit, 0),
-                       COALESCE(unit, 'g')
-                FROM ingredients;
-            DROP TABLE ingredients;
-            ALTER TABLE ingredients_new RENAME TO ingredients;
-        """)
-        conn.commit()
-        print("Migration: ingredients table fixed.")
+    # Check existing columns safely
+    cursor.execute("PRAGMA table_info(ingredients)")
+    cols = [row[1] for row in cursor.fetchall()]
 
-    # Add columns if missing
-    cols = [row[1] for row in conn.execute("PRAGMA table_info(ingredients)").fetchall()]
-    for col, defn in [
-        ("price_per_unit", "REAL DEFAULT 0"),
-        ("unit",           "TEXT DEFAULT 'g'"),
-    ]:
-        if col not in cols:
-            try:
-                conn.execute(f"ALTER TABLE ingredients ADD COLUMN {col} {defn}")
-                conn.commit()
-                print(f"Migration: added '{col}' to ingredients.")
-            except Exception:
-                pass
+    # Add missing columns (SAFE)
+    if "price_per_unit" not in cols:
+        cursor.execute("ALTER TABLE ingredients ADD COLUMN price_per_unit REAL DEFAULT 0")
+        print("Migration: added price_per_unit")
 
+    if "unit" not in cols:
+        cursor.execute("ALTER TABLE ingredients ADD COLUMN unit TEXT DEFAULT 'g'")
+        print("Migration: added unit")
+
+    conn.commit()
     conn.close()
-
-if __name__ == "__main__":
-    init_db()
+    print("Migration complete.")
