@@ -76,9 +76,7 @@ def _safe_num(value, field, allow_zero=True, max_val=1_000_000):
     return n, None
 
 def _require_json():
-    if not request.is_json:
-        return None, (jsonify({"error": "Content-Type must be application/json."}), 415)
-    data = request.get_json(silent=True)
+    data = request.get_json(silent=True, force=True)
     if data is None:
         return None, (jsonify({"error": "Invalid JSON body."}), 400)
     return data, None
