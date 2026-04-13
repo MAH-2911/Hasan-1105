@@ -1,5 +1,6 @@
 import os
 import re
+import sqlite3  # ✅ ADDED
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 from flask_limiter import Limiter
@@ -16,7 +17,7 @@ if not _secret:
         "python -c \"import secrets; print(secrets.token_hex(32))\""
     )
 app.config["SECRET_KEY"] = _secret
-app.config["MAX_CONTENT_LENGTH"] = 64 * 1024   # 64 KB max body
+app.config["MAX_CONTENT_LENGTH"] = 64 * 1024
 
 # ── CORS ──────────────────────────────────────────────────────────────────────
 _raw = os.environ.get("ALLOWED_ORIGINS", "")
@@ -82,7 +83,7 @@ def _require_json():
         return None, (jsonify({"error": "Invalid JSON body."}), 400)
     return data, None
 
-# ── DB init / migrate (SAFE STARTUP) ──────────────────────────────────────────
+# ── DB init / migrate (FIXED) ─────────────────────────────────────────────────
 def setup_database():
     if not os.path.exists("kitchen.db"):
         init_db()
@@ -124,70 +125,6 @@ def get_dish(id):
     result["ingredients"] = [dict(r) for r in ings]
     return jsonify(result)
 
-@app.route("/dishes", methods=["POST"])
-@limiter.limit("60 per hour")
-def add_dish():
-    data, err = _require_json()
-    if err: return err
-
-    name, e = _safe_str(data.get("name", ""), "name")
-    if e: return jsonify({"error": e}), 400
-
-    prep, e = _safe_num(data.get("prep", 0), "prep")
-    if e: return jsonify({"error": e}), 400
-
-    profit, e = _safe_num(data.get("profit", 75), "profit")
-    if e: return jsonify({"error": e}), 400
-
-    raw_ings = data.get("ingredients", [])
-    if not isinstance(raw_ings, list):
-        return jsonify({"error": "'ingredients' must be a list."}), 400
-    if len(raw_ings) > MAX_INGREDIENTS_PER_DISH:
-        return jsonify({"error": f"Max {MAX_INGREDIENTS_PER_DISH} ingredients."}), 400
-
-    validated = []
-    for idx, item in enumerate(raw_ings):
-        if not isinstance(item, dict):
-            return jsonify({"error": f"Ingredient #{idx+1} malformed."}), 400
-        ing_id, e = _safe_num(item.get("id", 0), f"ing #{idx+1} id", allow_zero=False, max_val=10_000_000)
-        if e: return jsonify({"error": e}), 400
-        qty, e = _safe_num(item.get("qty", 0), f"ing #{idx+1} qty", allow_zero=False)
-        if e: return jsonify({"error": e}), 400
-        price, e = _safe_num(item.get("price", 0), f"ing #{idx+1} price")
-        if e: return jsonify({"error": e}), 400
-        validated.append({"id": int(ing_id), "qty": qty, "price": price})
-
-    conn = get_db()
-    try:
-        cur = conn.cursor()
-        cur.execute(
-            "INSERT INTO dishes (name, preparation_expense, profit_margin) VALUES (?,?,?)",
-            (name, prep, profit)
-        )
-        dish_id = cur.lastrowid
-        for item in validated:
-            cur.execute(
-                "INSERT INTO dish_ingredients (dish_id, ingredient_id, quantity, price) VALUES (?,?,?,?)",
-                (dish_id, item["id"], item["qty"], item["price"])
-            )
-        conn.commit()
-        return jsonify({"message": "Dish added.", "id": dish_id}), 201
-    except Exception as e:
-        conn.rollback()
-        return jsonify({"error": "Could not save dish. " + str(e)}), 500
-
-@app.route("/dishes/<int:id>", methods=["DELETE"])
-@limiter.limit("60 per hour")
-def delete_dish(id):
-    conn = get_db()
-    try:
-        conn.execute("DELETE FROM dishes WHERE id=?", (id,))
-        conn.commit()
-        return jsonify({"message": "Deleted."})
-    except Exception as e:
-        conn.rollback()
-        return jsonify({"error": "Could not delete dish. " + str(e)}), 500
-
 # ── Ingredients ───────────────────────────────────────────────────────────────
 
 @app.route("/ingredients", methods=["GET"])
@@ -196,6 +133,46 @@ def get_ingredients():
     conn = get_db()
     data = conn.execute("SELECT * FROM ingredients ORDER BY name").fetchall()
     return jsonify([dict(row) for row in data])
+
+@app.route("/ingredients", methods=["POST"])
+@limiter.limit("60 per hour")
+def add_ingredient():
+    data, err = _require_json()
+    if err: return err
+
+    name, e = _safe_str(data.get("name", ""), "name")
+    if e: return jsonify({"error": e}), 400
+
+    # ✅ normalize name
+    name = name.lower().strip()
+    name = " ".join(name.split())
+
+    price_raw = data.get("price_per_unit", 0)
+    price, e = _safe_num(price_raw if price_raw is not None else 0, "price_per_unit")
+    if e: return jsonify({"error": e}), 400
+
+    unit = data.get("unit", "g")
+    if unit not in ALLOWED_UNITS:
+        unit = "g"
+
+    conn = get_db()
+    try:
+        cur = conn.execute(
+            "INSERT INTO ingredients (name, price_per_unit, unit) VALUES (?,?,?)",
+            (name, price, unit)
+        )
+        conn.commit()
+        row = conn.execute("SELECT * FROM ingredients WHERE id=?", (cur.lastrowid,)).fetchone()
+        return jsonify(dict(row)), 201
+
+    except sqlite3.IntegrityError:
+        conn.rollback()
+        return jsonify({"error": "Ingredient already exists."}), 400
+
+    except Exception as e:
+        conn.rollback()
+        print("ERROR:", str(e))
+        return jsonify({"error": "Server error: " + str(e)}), 500
 
 @app.route("/ingredients/search", methods=["GET"])
 @limiter.limit("120 per minute")
@@ -211,98 +188,7 @@ def search_ingredients():
     ).fetchall()
     return jsonify([dict(row) for row in data])
 
-@app.route("/ingredients", methods=["POST"])
-@limiter.limit("60 per hour")
-def add_ingredient():
-    data, err = _require_json()
-    if err: return err
-
-    name, e = _safe_str(data.get("name", ""), "name")
-    if e: return jsonify({"error": e}), 400
-
-    # price_per_unit and unit are optional — default to 0 and 'g'
-    price_raw = data.get("price_per_unit", 0)
-    price, e = _safe_num(price_raw if price_raw is not None else 0, "price_per_unit")
-    if e: return jsonify({"error": e}), 400
-
-    unit = data.get("unit", "g")
-    if unit not in ALLOWED_UNITS:
-        unit = "g"  # default to g if invalid/missing
-
-    conn = get_db()
-    try:
-        cur = conn.execute(
-            "INSERT INTO ingredients (name, price_per_unit, unit) VALUES (?,?,?)",
-            (name, price, unit)
-        )
-        conn.commit()
-        row = conn.execute("SELECT * FROM ingredients WHERE id=?", (cur.lastrowid,)).fetchone()
-        return jsonify(dict(row)), 201
-    except Exception as e:
-        conn.rollback()
-        return jsonify({"error": "Could not save ingredient. " + str(e)}), 500
-
-@app.route("/ingredients/<int:id>", methods=["PUT"])
-@limiter.limit("60 per hour")
-def update_ingredient(id):
-    data, err = _require_json()
-    if err: return err
-
-    name, e = _safe_str(data.get("name", ""), "name")
-    if e: return jsonify({"error": e}), 400
-
-    price, e = _safe_num(data.get("price_per_unit", 0), "price_per_unit")
-    if e: return jsonify({"error": e}), 400
-
-    unit = data.get("unit", "g")
-    if unit not in ALLOWED_UNITS:
-        unit = "g"
-
-    conn = get_db()
-    try:
-        conn.execute(
-            "UPDATE ingredients SET name=?, price_per_unit=?, unit=? WHERE id=?",
-            (name, price, unit, id)
-        )
-        conn.commit()
-        row = conn.execute("SELECT * FROM ingredients WHERE id=?", (id,)).fetchone()
-        if not row:
-            return jsonify({"error": "Not found."}), 404
-        return jsonify(dict(row))
-    except Exception as e:
-        conn.rollback()
-        return jsonify({"error": "Could not update ingredient. " + str(e)}), 500
-
-@app.route("/ingredients/<int:id>", methods=["DELETE"])
-@limiter.limit("60 per hour")
-def delete_ingredient(id):
-    conn = get_db()
-    try:
-        conn.execute("DELETE FROM ingredients WHERE id=?", (id,))
-        conn.commit()
-        return jsonify({"message": "Deleted."})
-    except Exception as e:
-        conn.rollback()
-        return jsonify({"error": "Could not delete ingredient. " + str(e)}), 500
-
-# ── Stats ─────────────────────────────────────────────────────────────────────
-
-@app.route("/stats", methods=["GET"])
-@limiter.limit("60 per minute")
-def get_stats():
-    conn = get_db()
-    dishes = conn.execute("SELECT COUNT(*) AS count FROM dishes").fetchone()
-    ings   = conn.execute("SELECT COUNT(*) AS count FROM ingredients").fetchone()
-    avg    = conn.execute("SELECT AVG(profit_margin) AS avg FROM dishes").fetchone()
-    top    = conn.execute(
-        "SELECT name, selling_price FROM dish_summary ORDER BY selling_price DESC LIMIT 1"
-    ).fetchone()
-    return jsonify({
-        "total_dishes":      dishes["count"],
-        "total_ingredients": ings["count"],
-        "avg_profit_margin": round(avg["avg"] or 0, 2),
-        "top_dish":          dict(top) if top else None,
-    })
+# ── RUN ───────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
     port  = int(os.environ.get("PORT", 5000))

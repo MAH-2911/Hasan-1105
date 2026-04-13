@@ -25,11 +25,11 @@ def migrate_db():
     conn = get_db()
     cursor = conn.cursor()
 
-    # Check existing columns safely
+    # Check existing columns
     cursor.execute("PRAGMA table_info(ingredients)")
     cols = [row[1] for row in cursor.fetchall()]
 
-    # Add missing columns (SAFE)
+    # Add missing columns safely
     if "price_per_unit" not in cols:
         cursor.execute("ALTER TABLE ingredients ADD COLUMN price_per_unit REAL DEFAULT 0")
         print("Migration: added price_per_unit")
