@@ -76,11 +76,10 @@ def _safe_num(value, field, allow_zero=True, max_val=1_000_000):
     return n, None
 
 def _require_json():
-    data = request.get_json(silent=True, force=True)
+    data = request.get_json(force=True, silent=True)
     if data is None:
-        return None, (jsonify({"error": "Invalid JSON body."}), 400)
+        return None, (jsonify({"error": "Invalid or missing JSON body."}), 400)
     return data, None
-
 # ── DB init / migrate (FIXED) ─────────────────────────────────────────────────
 def setup_database():
     if not os.path.exists("kitchen.db"):
